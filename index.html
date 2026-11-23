@@ -1,0 +1,2185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Clase interactiva para aprender a dibujar figuras con asteriscos en Python.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Figuras con asteriscos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: una hoja de cuaderno cuadriculado. Columna de lectura de ~44rem, bloques interactivos de hasta 72rem,
+   y las figuras se dibujan en casillas como las de la hoja. Tinta azul = asteriscos, tinta roja = notas y segundo grupo,
+   marcatextos amarillo = lo que Python está haciendo ahora. */
+:root {
+  --paper: #fbfcfd;
+  --grid: #e7ecf3;
+  --grid-strong: #d2dae5;
+  --card: #ffffff;
+  --ink: #18202c;
+  --muted: #586374;
+  --line: #d5dce6;
+  --pen: #2246c4;
+  --pen-soft: #e5ebfb;
+  --red: #c2392e;
+  --red-soft: #fbe8e5;
+  --green: #1c7a4c;
+  --green-soft: #e1f3ea;
+  --violet: #7a43c4;
+  --violet-soft: #efe6fb;
+  --mark: #fff27a;
+  --mark-ink: #18202c;
+  --dot: #a9b4c3;
+  --code-bg: #f2f5f9;
+  --shadow: rgba(20, 40, 90, .35);
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --f-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10141a; --grid: #171d25; --grid-strong: #262e3a; --card: #151a22; --ink: #e4e8ef; --muted: #98a3b4;
+    --line: #29313d; --pen: #8aa6ff; --pen-soft: #1c2645; --red: #ff8b7c; --red-soft: #3a1d1a; --green: #6fd3a0;
+    --green-soft: #15302a; --violet: #c6a6ff; --violet-soft: #2a1f42; --mark: #5c5412; --mark-ink: #fff6c8;
+    --dot: #445063; --code-bg: #0c1016; --shadow: rgba(0, 0, 0, .7); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10141a; --grid: #171d25; --grid-strong: #262e3a; --card: #151a22; --ink: #e4e8ef; --muted: #98a3b4;
+  --line: #29313d; --pen: #8aa6ff; --pen-soft: #1c2645; --red: #ff8b7c; --red-soft: #3a1d1a; --green: #6fd3a0;
+  --green-soft: #15302a; --violet: #c6a6ff; --violet-soft: #2a1f42; --mark: #5c5412; --mark-ink: #fff6c8;
+  --dot: #445063; --code-bg: #0c1016; --shadow: rgba(0, 0, 0, .7); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 4rem;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.hoja { max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; gap: 4.5rem; }
+.prosa { max-width: 44rem; }
+.prosa > * + * { margin-top: .9rem; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.12; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 750; }
+h3 { font-size: 1.3rem; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--pen); }
+code, .mono { font-family: var(--f-mono); font-size: .9em; }
+:not(pre) > code { background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px; padding: .05em .35em; white-space: nowrap; }
+strong { font-weight: 700; }
+:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; border-radius: 4px; }
+.eyebrow { font-family: var(--f-mono); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.mano { font-family: var(--f-hand); color: var(--red); font-weight: 700; }
+
+/* ---------- Portada ---------- */
+.portada { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; padding-top: 3.5rem; }
+.portada h1 { font-size: clamp(2.6rem, 7vw, 4.6rem); font-weight: 800; margin-top: .6rem; }
+.portada h1 .ast { color: var(--pen); }
+.portada .lead { font-size: 1.2rem; margin-top: 1.1rem; max-width: 34rem; }
+.hero-hoja { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem 1.2rem 1rem; box-shadow: 0 1px 0 var(--line), 0 18px 40px -28px var(--shadow); min-width: 0; }
+.hero-hoja .pie { font-family: var(--f-hand); color: var(--muted); font-size: 1.2rem; margin-top: .6rem; }
+.indice { margin-top: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; }
+.indice a { display: inline-flex; gap: .45rem; align-items: baseline; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: .3rem .8rem; font-size: .92rem; }
+.indice a:hover { border-color: var(--pen); }
+.indice b { font-family: var(--f-hand); color: var(--red); font-size: 1.15rem; line-height: 1; }
+
+/* ---------- Secciones ---------- */
+.seccion { display: flex; flex-direction: column; gap: 1.6rem; scroll-margin-top: 1rem; }
+.sec-cab { display: flex; gap: 1rem; align-items: flex-start; }
+.sec-num { font-family: var(--f-hand); color: var(--red); font-size: 2.6rem; line-height: .9; font-weight: 700; flex: none; width: 2.6rem; height: 2.6rem; border: 2px solid var(--red); border-radius: 50%; display: grid; place-items: center; transform: rotate(-6deg); }
+.sec-cab .prosa { min-width: 0; }
+.sec-cab p { color: var(--muted); margin-top: .5rem; }
+
+.tarjeta { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; min-width: 0; }
+.rejilla-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.bloque h3 { font-size: 1.1rem; }
+.bloque > * + * { margin-top: .7rem; }
+.par { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: .8rem; align-items: start; }
+.par .rotulo { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .3rem; }
+.nota-lateral { font-family: var(--f-hand); font-size: 1.25rem; color: var(--red); line-height: 1.2; }
+
+/* ---------- Código ---------- */
+pre.code { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: .85rem 4.6rem .85rem 1rem; overflow-x: auto; font-family: var(--f-mono); font-size: .86rem; line-height: 1.55; position: relative; tab-size: 4; }
+pre.code code { font-family: inherit; }
+.tk-k { color: var(--pen); font-weight: 700; }
+.tk-b { color: var(--violet); }
+.tk-s { color: var(--red); }
+.tk-n { color: var(--green); }
+.tk-c { color: var(--muted); font-style: italic; }
+.copiar { position: absolute; top: .45rem; right: .45rem; font: 600 .72rem var(--f-body); color: var(--muted); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: .2rem .5rem; cursor: pointer; }
+.copiar:hover { color: var(--ink); border-color: var(--muted); }
+.tabla-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; width: 100%; }
+th, td { border-bottom: 1px solid var(--line); padding: .35rem .6rem; text-align: left; }
+th { font-size: .8rem; color: var(--muted); font-weight: 700; vertical-align: bottom; }
+td.num, th.num { text-align: center; }
+td code { white-space: nowrap; }
+
+/* ---------- Figuras en casillas ---------- */
+.figwrap { container-type: inline-size; overflow-x: auto; overflow-y: hidden; min-width: 0; padding-bottom: 4px; }
+.fig { vertical-align: top; }
+.fig { --cell: max(14px, min(28px, calc((100cqi - 2.8rem) / var(--cols)))); display: inline-flex; flex-direction: column; font-family: var(--f-mono); padding: 1px 0 0 1px; }
+.fr { display: flex; align-items: center; }
+.fr.corte { margin-top: 7px; position: relative; }
+.fr.corte::before { content: ""; position: absolute; left: 2.4rem; right: 0; top: -5px; border-top: 2px dashed var(--red); opacity: .7; }
+.fig .rl { width: 2.4rem; flex: none; text-align: right; padding-right: .45rem; font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.c { width: var(--cell); height: var(--cell); flex: none; display: grid; place-items: center; border: 1px solid var(--grid-strong); margin: -1px 0 0 -1px; font-size: calc(var(--cell) * .74); font-weight: 700; line-height: 1; color: var(--pen); background: var(--card); }
+.c.s { background: var(--pen-soft); }
+.c.s.b { color: var(--red); background: var(--red-soft); }
+.c.s.k1 { color: var(--red); background: var(--red-soft); }
+.c.s.k2 { color: var(--green); background: var(--green-soft); }
+.c.s.k3 { color: var(--violet); background: var(--violet-soft); }
+.c.s::after { content: "*"; transform: translateY(.14em); }
+.ver-esp .c.e::after { content: "·"; color: var(--dot); font-weight: 400; }
+.c.cj { border-color: transparent; background: none; color: var(--muted); font-size: .68rem; font-weight: 400; }
+.c.cur { box-shadow: inset 0 0 0 2px var(--mark-ink); background: var(--mark); }
+.c.cursor { background: var(--mark); animation: parpadeo 1s steps(1) infinite; }
+.c.hover { outline: 2px solid var(--ink); outline-offset: -2px; z-index: 1; position: relative; }
+@keyframes parpadeo { 50% { background: var(--card); } }
+.fig .nota { font-family: var(--f-hand); color: var(--red); font-size: 1.15rem; padding-left: .7rem; white-space: nowrap; line-height: 1; }
+.fig-vacia { color: var(--muted); font-style: italic; }
+
+/* ---------- Paso a paso ---------- */
+.tracer { display: flex; flex-direction: column; gap: 1rem; }
+.barra { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; }
+.barra label { font-size: .9rem; color: var(--muted); }
+select, input[type="text"], input[type="number"] { font: inherit; font-size: .95rem; color: var(--ink); background: var(--card); border: 1px solid var(--grid-strong); border-radius: 7px; padding: .3rem .5rem; }
+input[type="text"] { font-family: var(--f-mono); font-size: .9rem; }
+input[type="range"] { accent-color: var(--pen); }
+.tr-cuerpo { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.tr-code { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: .7rem 0; font-family: var(--f-mono); font-size: .9rem; overflow-x: auto; }
+.tr-code .ln { display: block; padding: .1rem 1rem .1rem .6rem; white-space: pre; border-left: 4px solid transparent; }
+.tr-code .ln .num { color: var(--dot); display: inline-block; width: 1.6rem; user-select: none; }
+.tr-code .ln.activa { background: var(--mark); color: var(--mark-ink); border-left-color: var(--red); }
+.tr-code .ln.activa span { color: inherit; }
+.tr-vars { display: flex; gap: .5rem; flex-wrap: wrap; }
+.var { font-family: var(--f-mono); border: 1px solid var(--line); background: var(--card); border-radius: 7px; padding: .25rem .6rem; font-size: .95rem; }
+.var b { color: var(--pen); }
+.var.cambio { background: var(--mark); color: var(--mark-ink); }
+.var.cambio b { color: inherit; }
+.tr-msg { min-height: 3.2em; font-size: 1rem; }
+.consola-tit { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .35rem; }
+.mandos { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+button { font: inherit; }
+.btn { font-size: .95rem; font-weight: 700; color: var(--ink); background: var(--card); border: 1px solid var(--grid-strong); border-radius: 8px; padding: .4rem .85rem; cursor: pointer; }
+.btn:hover { border-color: var(--ink); }
+.btn.primario { background: var(--pen); color: var(--card); border-color: var(--pen); }
+.btn.primario:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.cuenta { font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: auto; }
+
+/* ---------- Métodos ---------- */
+.pasos-lista { counter-reset: paso; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .7rem; }
+.pasos-lista li { counter-increment: paso; display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: .6rem; }
+.pasos-lista li::before { content: counter(paso); font-family: var(--f-hand); color: var(--red); font-size: 1.6rem; line-height: 1; font-weight: 700; text-align: center; }
+.cuenta-formula { display: flex; flex-direction: column; gap: .5rem; }
+.cuenta-formula .fila { display: grid; grid-template-columns: minmax(0, 1fr); gap: .15rem; padding: .7rem .9rem; border-left: 3px solid var(--pen); background: var(--pen-soft); border-radius: 0 8px 8px 0; }
+.cuenta-formula .fila.roja { border-left-color: var(--red); background: var(--red-soft); }
+.formulas-comunes td:first-child { font-family: var(--f-mono); font-weight: 600; color: var(--pen); white-space: nowrap; }
+.detector { display: flex; flex-direction: column; gap: .8rem; }
+.detector .campos { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: end; }
+.detector .campo { display: flex; flex-direction: column; gap: .2rem; }
+.detector .campo label { font-size: .85rem; color: var(--muted); }
+.detector #det-nums { width: min(16rem, 100%); }
+.detector #det-n { width: 5rem; }
+.resultado { border-radius: 8px; padding: .8rem 1rem; background: var(--code-bg); border: 1px solid var(--line); }
+.resultado .grande { font-family: var(--f-mono); font-size: 1.2rem; font-weight: 700; color: var(--pen); }
+.resultado.error { border-color: var(--red); background: var(--red-soft); }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chip { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0; text-align: left; border: 1px solid var(--grid-strong); background: var(--card); border-radius: 8px; padding: .35rem .65rem; cursor: pointer; color: var(--ink); }
+.chip code { background: none; border: 0; padding: 0; font-weight: 700; color: var(--ink); }
+.chip small { color: var(--muted); font-size: .78rem; }
+.chip[aria-pressed="true"] { border-color: var(--pen); background: var(--pen-soft); box-shadow: inset 0 0 0 1px var(--pen); }
+.chip[aria-pressed="true"] code { color: var(--pen); }
+.combos { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.combos span { font-size: .88rem; color: var(--muted); margin-right: .2rem; }
+.combo { font-size: .85rem; font-weight: 700; border: 1px dashed var(--grid-strong); background: transparent; color: var(--ink); border-radius: 999px; padding: .2rem .7rem; cursor: pointer; }
+.combo:hover { border-color: var(--pen); color: var(--pen); }
+.info { font-size: .92rem; min-height: 1.6em; color: var(--muted); }
+.info .si { color: var(--green); font-weight: 700; }
+.info .no { color: var(--muted); }
+.info .res { color: var(--ink); font-weight: 700; }
+.cond-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
+.control-n { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.control-n output { font-family: var(--f-mono); font-weight: 700; min-width: 2ch; }
+
+/* ---------- Figuras ---------- */
+.pegajosa { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line); padding: .6rem 0; display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; align-items: center; }
+.pegajosa .control-n .btn { padding: .15rem .6rem; }
+.pegajosa label { font-size: .95rem; }
+.figuras { display: flex; flex-direction: column; gap: 1.2rem; }
+.fcard { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.3rem; display: flex; flex-direction: column; gap: 1rem; scroll-margin-top: 4.5rem; min-width: 0; }
+.fc-cab { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: baseline; justify-content: space-between; }
+.tags { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.tag { font-size: .75rem; font-weight: 700; border-radius: 999px; padding: .1rem .55rem; border: 1px solid currentColor; }
+.tag.m1 { color: var(--pen); }
+.tag.m2 { color: var(--red); }
+.tag.dos { color: var(--green); }
+.archivo { font-family: var(--f-mono); font-size: .78rem; color: var(--muted); }
+.fc-txt { max-width: 46rem; }
+.fc-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
+.fc-datos { min-width: 0; display: flex; flex-direction: column; gap: .5rem; }
+.fc-datos .tabla-wrap { max-height: 26rem; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+.fc-datos table th { position: sticky; top: 0; background: var(--card); }
+.th-f { display: block; font-family: var(--f-mono); font-size: .8rem; font-weight: 700; color: var(--ink); margin-top: .1rem; white-space: nowrap; }
+.th-f.a { color: var(--pen); } .th-f.b { color: var(--red); } .th-f.sp { color: var(--muted); }
+.parte-tag { font-size: .78rem; color: var(--muted); }
+.clausulas { display: flex; flex-direction: column; gap: .35rem; font-family: var(--f-mono); font-size: .9rem; }
+.clausulas div { display: flex; gap: .5rem; align-items: center; }
+.clausulas .o { color: var(--muted); font-size: .8rem; padding-left: 1.4rem; }
+.punto { width: .85rem; height: .85rem; border-radius: 3px; flex: none; }
+.punto.k0 { background: var(--pen); } .punto.k1 { background: var(--red); } .punto.k2 { background: var(--green); } .punto.k3 { background: var(--violet); }
+.tabs [role="tablist"] { display: flex; gap: .3rem; margin-bottom: -1px; flex-wrap: wrap; }
+.tabs [role="tab"] { font-size: .85rem; font-weight: 700; border: 1px solid var(--line); border-bottom-color: transparent; background: transparent; color: var(--muted); border-radius: 8px 8px 0 0; padding: .35rem .8rem; cursor: pointer; }
+.tabs [role="tab"][aria-selected="true"] { background: var(--code-bg); color: var(--ink); border-color: var(--line); border-bottom-color: var(--code-bg); position: relative; z-index: 1; }
+.tabs pre.code { border-top-left-radius: 0; }
+.fc-pie { display: flex; justify-content: flex-end; }
+.enlace { font-size: .9rem; font-weight: 700; color: var(--pen); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Laboratorio ---------- */
+.lab { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 1.2rem; align-items: start; }
+.lab-ctrl { display: flex; flex-direction: column; gap: 1rem; }
+.lab-ctrl fieldset { border: 1px solid var(--line); border-radius: 8px; padding: .7rem .9rem .9rem; margin: 0; display: flex; flex-direction: column; gap: .55rem; min-width: 0; }
+.lab-ctrl legend { font-weight: 700; padding: 0 .3rem; font-size: .95rem; }
+.lab-rango { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-family: var(--f-mono); font-size: .9rem; }
+.lab-rango input { width: 6.5rem; }
+.seg { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .4rem; align-items: center; }
+.seg .num-col { font-size: .8rem; color: var(--muted); }
+.seg-fila { display: grid; grid-template-columns: 1.4rem auto minmax(0, 1fr) auto; gap: .4rem; align-items: center; }
+.seg-fila input { width: 100%; min-width: 0; }
+.quitar { border: 1px solid var(--grid-strong); background: var(--card); color: var(--muted); border-radius: 6px; width: 2rem; height: 2rem; cursor: pointer; font-size: 1.1rem; line-height: 1; }
+.quitar:hover { color: var(--red); border-color: var(--red); }
+.check { display: flex; gap: .5rem; align-items: center; font-size: .95rem; }
+.avisos { display: flex; flex-direction: column; gap: .4rem; }
+.aviso { font-size: .92rem; border-radius: 8px; padding: .5rem .8rem; background: var(--red-soft); border: 1px solid var(--red); }
+.aviso.suave { background: var(--code-bg); border-color: var(--line); }
+.lab-sal { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+/* ---------- Examen y ejercicios ---------- */
+.errores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.error-card h3 { font-size: 1.05rem; }
+.error-card > * + * { margin-top: .55rem; }
+.mal, .bien { font-family: var(--f-mono); font-size: .85rem; border-radius: 6px; padding: .4rem .6rem; overflow-x: auto; white-space: pre; }
+.mal { background: var(--red-soft); color: var(--ink); border-left: 3px solid var(--red); }
+.bien { background: var(--green-soft); color: var(--ink); border-left: 3px solid var(--green); }
+.ejercicios { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.ej { display: flex; flex-direction: column; gap: .8rem; }
+.ej-cab { display: flex; justify-content: space-between; gap: .6rem; align-items: baseline; flex-wrap: wrap; }
+.nivel { font-size: .75rem; font-weight: 700; border-radius: 999px; padding: .1rem .55rem; }
+.nivel.facil { background: var(--green-soft); color: var(--green); }
+.nivel.media { background: var(--pen-soft); color: var(--pen); }
+.nivel.dificil { background: var(--red-soft); color: var(--red); }
+details { border-top: 1px solid var(--line); padding-top: .6rem; }
+details > summary { cursor: pointer; font-weight: 700; color: var(--pen); list-style-position: inside; }
+details[open] > summary { margin-bottom: .6rem; }
+details > * + * { margin-top: .6rem; }
+.archivos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.5rem; padding: 0; list-style: none; font-size: .95rem; }
+.archivos code { white-space: normal; }
+.pie-pagina { color: var(--muted); font-size: .9rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
+
+/* ---------- 9. Actividad 13: presentación ---------- */
+.a13-deck { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 1px 0 var(--line), 0 18px 40px -30px var(--shadow); display: flex; flex-direction: column; min-width: 0; scroll-margin-top: 1rem; }
+.a13-deck:focus { outline: none; }
+.a13-deck:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+.a13-barra { position: relative; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; padding: .65rem 1rem; border-bottom: 1px solid var(--line); }
+.a13-tabs { display: flex; gap: .3rem; overflow-x: auto; min-width: 0; scrollbar-width: thin; padding-block: 2px; }
+.a13-tab { font-size: .85rem; font-weight: 700; white-space: nowrap; color: var(--muted); background: none; border: 1px solid transparent; border-radius: 999px; padding: .2rem .7rem; cursor: pointer; }
+.a13-tab b { font-family: var(--f-hand); color: var(--red); font-size: 1.15rem; line-height: 1; margin-right: .3rem; }
+.a13-tab:hover { color: var(--ink); border-color: var(--grid-strong); }
+.a13-tab[aria-current="true"] { color: var(--pen); background: var(--pen-soft); border-color: var(--pen); }
+.a13-acc { display: flex; align-items: center; gap: .7rem; }
+.a13-acc .btn { font-size: .85rem; padding: .25rem .7rem; }
+.a13-cuenta { font-family: var(--f-mono); font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.a13-progreso { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; }
+.a13-progreso span { display: block; height: 100%; width: 0; background: var(--pen); transition: width .25s ease; }
+.a13-escenario { padding: 1.6rem 1.5rem 1.8rem; min-height: 36rem; display: flex; flex-direction: column; }
+.a13-diapo { display: flex; flex-direction: column; gap: 1.3rem; flex: 1 0 auto; min-width: 0; }
+.a13-diapo.entra { animation: a13-entrar .26s ease-out; }
+@keyframes a13-entrar { from { opacity: .35; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+.a13-pie { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .65rem 1rem; border-top: 1px solid var(--line); }
+.a13-pista { font-size: .85rem; color: var(--muted); text-align: center; }
+kbd { font-family: var(--f-mono); font-size: .8em; border: 1px solid var(--grid-strong); border-bottom-width: 2px; border-radius: 5px; padding: .02em .4em; background: var(--card); color: var(--ink); }
+
+.a13-cab { display: flex; flex-direction: column; gap: .35rem; max-width: 52rem; }
+.a13-cab h3 { font-size: clamp(1.45rem, 2.8vw, 1.95rem); font-weight: 750; }
+.a13-sub { color: var(--muted); }
+.a13-diapo .tag { white-space: nowrap; }
+.a13-dos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 1.6rem; align-items: start; }
+.a13-col { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.a13-rotulo { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .35rem; }
+.a13-archivo { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); margin-bottom: .35rem; }
+
+.a13-pasos { display: flex; flex-wrap: wrap; gap: .45rem; }
+.a13-paso { display: inline-flex; align-items: center; gap: .45rem; font-size: .9rem; font-weight: 700; color: var(--ink); background: var(--card); border: 1px solid var(--grid-strong); border-radius: 999px; padding: .25rem .8rem .25rem .3rem; cursor: pointer; }
+.a13-paso b { font-family: var(--f-hand); font-size: 1.15rem; line-height: 1; width: 1.55rem; height: 1.55rem; border-radius: 50%; display: grid; place-items: center; color: var(--red); border: 1.5px solid var(--red); flex: none; }
+.a13-paso:hover { border-color: var(--ink); }
+.a13-paso[aria-pressed="true"] { border-color: var(--pen); background: var(--pen-soft); box-shadow: inset 0 0 0 1px var(--pen); }
+.a13-paso.error b { background: var(--red); color: var(--card); }
+.a13-paso.error[aria-pressed="true"] { border-color: var(--red); background: var(--red-soft); box-shadow: inset 0 0 0 1px var(--red); }
+.a13-txt { min-height: 6.4em; }
+.a13-txt code { white-space: normal; }
+.a13-leyenda { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.a13-leyenda li { display: flex; gap: .55rem; align-items: baseline; flex-wrap: wrap; }
+.a13-leyenda .punto { transform: translateY(.1em); }
+.a13-leyenda code { white-space: normal; }
+.a13-leyenda .nom { color: var(--muted); font-size: .9rem; }
+pre.code.a13-cond { white-space: pre-wrap; padding-right: 1rem; }
+.a13-barra-fig { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; align-items: center; justify-content: space-between; }
+.a13-barra-fig .a13-rotulo { margin: 0; }
+.a13-barra-fig .control-n .btn { padding: .1rem .6rem; }
+.a13-barra-fig .control-n .btn[disabled] { opacity: .4; cursor: default; }
+.a13-vals { font-family: var(--f-mono); font-size: .9rem; color: var(--muted); }
+.a13-info { min-height: 6.2em; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: .55rem .8rem; font-size: .9rem; color: var(--muted); display: flex; flex-direction: column; gap: .25rem; }
+.a13-info .pos { color: var(--ink); }
+.a13-info .l { display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; }
+.a13-info .l .punto { transform: translateY(.1em); }
+.a13-info code { background: none; border: 0; padding: 0; white-space: normal; color: var(--ink); }
+.a13-info .si { color: var(--green); font-weight: 700; }
+.a13-info .no { color: var(--muted); }
+.a13-info .lleva { color: var(--pen); font-weight: 700; }
+.a13-info .vacio { color: var(--muted); font-weight: 700; }
+.fr.a13-resalta > .c:not(.cj) { background: var(--mark); }
+.a13-tabla tr.a13-resalta td { background: var(--mark); color: var(--mark-ink); }
+.a13-tabla tbody tr { cursor: default; }
+
+pre.a13-consola { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: .85rem 1rem; font-family: var(--f-mono); font-size: .9rem; line-height: 1.3; overflow-x: auto; color: var(--ink); }
+.a13-consola .prompt { color: var(--muted); }
+.a13-consola .entrada { color: var(--pen); font-weight: 700; }
+.a13-consola .pto { color: var(--dot); }
+.a13-nota { border-radius: 8px; padding: .75rem 1rem; border: 1px solid; display: flex; flex-direction: column; gap: .3rem; }
+.a13-nota.ok { background: var(--green-soft); border-color: var(--green); }
+.a13-nota.ojo { background: var(--red-soft); border-color: var(--red); }
+.a13-nota h4 { margin: 0; font-family: var(--f-display); font-size: 1rem; }
+.a13-variante { display: flex; flex-direction: column; gap: .5rem; }
+.a13-variante .a13-rotulo { margin: 0; }
+
+.a13-minis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+.a13-mini-btn { display: flex; flex-direction: column; align-items: center; gap: .55rem; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: .85rem .5rem .7rem; cursor: pointer; color: var(--ink); font: inherit; min-width: 0; }
+.a13-mini-btn:hover { border-color: var(--pen); }
+.a13-mini-fig { height: 6.4rem; display: flex; align-items: center; justify-content: center; }
+.a13-mini-q { height: 6.4rem; display: grid; place-items: center; font-family: var(--f-hand); color: var(--red); font-size: 4.2rem; line-height: 1; }
+.a13-mini-nom { font-size: .88rem; font-weight: 700; text-align: center; line-height: 1.25; }
+.a13-mini-nom b { font-family: var(--f-hand); color: var(--red); font-size: 1.15rem; margin-right: .3rem; }
+.fig.a13-mini { padding: 0; }
+.fig.a13-mini .c { border: 0; margin: 0; background: transparent; }
+.fig.a13-mini .c.s { background: var(--pen); }
+.fig.a13-mini .c::after { content: none !important; }
+
+.a13-errores { display: flex; flex-direction: column; gap: .7rem; }
+.a13-err { border: 1px solid var(--line); border-radius: 8px; padding: .65rem .8rem; display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+.a13-err p { color: var(--muted); font-size: .92rem; }
+
+.a13-deck:fullscreen { border-radius: 0; border: 0; overflow-y: auto; }
+.a13-deck:fullscreen .a13-escenario { flex: 1 0 auto; padding-inline: max(1.5rem, 4vw); }
+.a13-deck::backdrop { background: var(--paper); }
+
+@media (max-width: 860px) {
+  .a13-dos { grid-template-columns: minmax(0, 1fr); }
+  .a13-escenario { min-height: 0; padding: 1.2rem 1rem 1.4rem; }
+  .a13-minis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .a13-pista { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .a13-diapo.entra { animation: none; }
+  .a13-progreso span { transition: none; }
+}
+
+@media (max-width: 860px) {
+  .portada, .tr-cuerpo, .fc-cuerpo, .lab, .cond-cuerpo, .rejilla-2, .par, .errores, .ejercicios { grid-template-columns: minmax(0, 1fr); }
+  .portada { padding-top: 2rem; gap: 1.6rem; }
+  .archivos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c.cursor { animation: none; }
+  * { scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div class="hoja ver-esp" id="hoja">
+
+<header class="portada">
+  <div>
+    <div class="eyebrow">Python · Clase para el examen</div>
+    <h1>Figuras con asteriscos<span class="ast">*</span></h1>
+    <p class="lead">Cualquier figura de asteriscos, sea una pirámide, un reloj de arena o una mariposa, se arma igual: fila por fila, contando espacios y asteriscos. Aquí aprendes los dos métodos que resuelven todas, con ejemplos que puedes mover y ejercicios tipo examen.</p>
+    <ul class="indice" aria-label="Contenido">
+      <li><a href="#basico"><b>1</b>Lo básico</a></li>
+      <li><a href="#paso-a-paso"><b>2</b>Paso a paso</a></li>
+      <li><a href="#metodo-1"><b>3</b>Método 1: contar</a></li>
+      <li><a href="#metodo-2"><b>4</b>Método 2: casillas</a></li>
+      <li><a href="#figuras"><b>5</b>Las figuras</a></li>
+      <li><a href="#laboratorio"><b>6</b>Laboratorio</a></li>
+      <li><a href="#examen"><b>7</b>En el examen</a></li>
+      <li><a href="#ejercicios"><b>8</b>Ejercicios</a></li>
+      <li><a href="#actividad-13"><b>9</b>Actividad 13</a></li>
+    </ul>
+  </div>
+  <figure class="hero-hoja" style="margin:0">
+    <div class="figwrap" id="hero-fig"></div>
+    <figcaption class="pie">Python escribe así: de izquierda a derecha, una fila a la vez, sin volver atrás.</figcaption>
+  </figure>
+</header>
+
+<!-- 1. Lo básico -->
+<section class="seccion" id="basico">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">1</div>
+    <div class="prosa">
+      <h2>Lo básico de Python que necesitas</h2>
+      <p>La consola es como una hoja cuadriculada. Python escribe de izquierda a derecha y de arriba abajo, como tú en el cuaderno, pero no puede volver atrás. Por eso, para dibujar, decides fila por fila qué va en cada casilla: un espacio o un asterisco. Con estas cuatro piezas alcanza.</p>
+    </div>
+  </div>
+
+  <div class="rejilla-2">
+    <div class="tarjeta bloque">
+      <h3>print y end=""</h3>
+      <p>Normalmente <code>print</code> termina con un salto de línea. Con <code>end=""</code> le dices que no salte, y lo siguiente queda al lado. Un <code>print()</code> vacío solo salta de línea.</p>
+      <div class="par">
+        <div><div class="rotulo">Código</div><pre class="code"><code class="py">print("*", end="")
+print("*", end="")
+print("*", end="")
+print()
+print("*")
+print("*")</code></pre></div>
+        <div><div class="rotulo">Sale en la consola</div><div class="figwrap salida" data-lineas='["***","*","*"]'></div></div>
+      </div>
+    </div>
+
+    <div class="tarjeta bloque">
+      <h3>Multiplicar y sumar textos</h3>
+      <p>Un texto por un número lo repite. Con <code>+</code> pegas textos. Así armas una fila completa en una sola línea de código.</p>
+      <div class="par">
+        <div><div class="rotulo">Código</div><pre class="code"><code class="py">print("*" * 5)
+print(" " * 3 + "*" * 2)
+print("*" + " " * 3 + "*")</code></pre></div>
+        <div><div class="rotulo">Sale en la consola</div><div class="figwrap salida" data-lineas='["*****","   **","*   *"]'></div></div>
+      </div>
+    </div>
+
+    <div class="tarjeta bloque">
+      <h3>range: los números que recorre el for</h3>
+      <p>El segundo número <strong>nunca se incluye</strong>. Con un tercer número negativo, cuenta hacia atrás.</p>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>Escribes</th><th>i toma los valores</th></tr></thead>
+          <tbody>
+            <tr><td><code>range(4)</code></td><td>0, 1, 2, 3</td></tr>
+            <tr><td><code>range(1, 5)</code></td><td>1, 2, 3, 4</td></tr>
+            <tr><td><code>range(1, n + 1)</code></td><td>1, 2, …, n</td></tr>
+            <tr><td><code>range(2, 5)</code></td><td>2, 3, 4</td></tr>
+            <tr><td><code>range(4, 0, -1)</code></td><td>4, 3, 2, 1</td></tr>
+            <tr><td><code>range(0)</code></td><td>ninguno: el for no da vueltas</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tarjeta bloque">
+      <h3>Un for dentro de otro</h3>
+      <p>El for de afuera recorre las <strong>filas</strong>. El de adentro escribe lo que va <strong>dentro de cada fila</strong>. Funciona como un reloj: el minutero (el de adentro) da la vuelta completa por cada paso del horario (el de afuera).</p>
+      <div class="par">
+        <div><div class="rotulo">Código</div><pre class="code"><code class="py">for i in range(1, 4):
+    for j in range(1, 6):
+        print("*", end="")
+    print()</code></pre></div>
+        <div><div class="rotulo">Sale en la consola</div><div class="figwrap salida" data-lineas='["*****","*****","*****"]'></div></div>
+      </div>
+      <p class="nota-lateral">Fíjate en la sangría: el print() está fuera del for de adentro, así que corre una vez por fila, al terminarla.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Paso a paso -->
+<section class="seccion" id="paso-a-paso">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">2</div>
+    <div class="prosa">
+      <h2>Mira el código paso a paso</h2>
+      <p>Así lee Python un programa de figuras: línea por línea, dando vueltas en los for. La línea amarilla es la que se está ejecutando, y abajo ves qué valen las variables y qué va saliendo en la consola.</p>
+    </div>
+  </div>
+  <div class="tarjeta tracer" id="tracer">
+    <div class="barra">
+      <label for="tr-prog">Programa</label>
+      <select id="tr-prog">
+        <option value="triangulo">Triángulo</option>
+        <option value="piramide">Pirámide</option>
+      </select>
+      <label for="tr-n">n</label>
+      <select id="tr-n">
+        <option>2</option><option selected>3</option><option>4</option><option>5</option>
+      </select>
+    </div>
+    <div class="tr-cuerpo">
+      <pre class="tr-code" id="tr-code" aria-label="Código del programa"></pre>
+      <div class="bloque">
+        <div class="tr-vars" id="tr-vars"></div>
+        <p class="tr-msg" id="tr-msg" aria-live="polite"></p>
+        <div>
+          <div class="consola-tit">Consola</div>
+          <div class="figwrap" id="tr-out"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mandos">
+      <button class="btn" id="tr-ini" type="button">Reiniciar</button>
+      <button class="btn" id="tr-ant" type="button">◀ Anterior</button>
+      <button class="btn" id="tr-play" type="button">Reproducir</button>
+      <button class="btn primario" id="tr-sig" type="button">Siguiente ▶</button>
+      <span class="cuenta" id="tr-cuenta"></span>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Método 1 -->
+<section class="seccion" id="metodo-1">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">3</div>
+    <div class="prosa">
+      <h2>Método 1: contar espacios y asteriscos por fila</h2>
+      <p>Sirve para casi todas las figuras: triángulos, pirámides, rombos, relojes de arena y mariposas. La idea es convertir el dibujo en una tabla y la tabla en fórmulas.</p>
+    </div>
+  </div>
+
+  <div class="rejilla-2">
+    <div class="tarjeta bloque">
+      <h3>Los pasos</h3>
+      <ol class="pasos-lista">
+        <li><span>Dibuja la figura en papel con un n pequeño (4 va bien) y numera las filas: i = 1, 2, 3, 4.</span></li>
+        <li><span>En cada fila, cuenta de izquierda a derecha: cuántos espacios, cuántos asteriscos y, si vienen más grupos después, cuántos de cada uno.</span></li>
+        <li><span>Haz una tabla con una columna por cada grupo.</span></li>
+        <li><span>Busca la fórmula de cada columna usando i y n.</span></li>
+        <li><span>Escribe un for para las filas y, dentro, un for (o una multiplicación) por cada columna. Al final de la fila, <code>print()</code>.</span></li>
+      </ol>
+    </div>
+    <div class="tarjeta bloque">
+      <h3>Ejemplo: la pirámide con n = 4</h3>
+      <div class="par">
+        <div class="figwrap" id="m1-fig"></div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th class="num">i</th><th class="num">espacios</th><th class="num">asteriscos</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td class="num">3</td><td class="num">1</td></tr>
+              <tr><td class="num">2</td><td class="num">2</td><td class="num">3</td></tr>
+              <tr><td class="num">3</td><td class="num">1</td><td class="num">5</td></tr>
+              <tr><td class="num">4</td><td class="num">0</td><td class="num">7</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rejilla-2">
+    <div class="tarjeta bloque">
+      <h3>Cómo sacar la fórmula</h3>
+      <p>Mira cuánto cambia la columna de una fila a la siguiente. Ese cambio es el número que multiplica a la i. Después ajustas con la fila 1.</p>
+      <div class="cuenta-formula">
+        <div class="fila">
+          <strong>Asteriscos: 1, 3, 5, 7</strong>
+          <span>Suben de 2 en 2, así que empieza con <code>2 * i</code>. En la fila 1 da 2, pero hay 1: le restas 1.</span>
+          <span>Fórmula: <code>2 * i - 1</code>. Compruébala en la fila 3: 2 · 3 − 1 = 5 ✓</span>
+        </div>
+        <div class="fila roja">
+          <strong>Espacios: 3, 2, 1, 0</strong>
+          <span>Bajan de 1 en 1, así que lleva <code>- i</code>. En la fila 1 hay 3, y 3 = 4 − 1, donde 4 es n.</span>
+          <span>Fórmula: <code>n - i</code>. Compruébala en la fila 3: 4 − 3 = 1 ✓</span>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta bloque">
+      <h3>Fórmulas que salen mucho</h3>
+      <div class="tabla-wrap">
+        <table class="formulas-comunes">
+          <thead><tr><th>Fórmula</th><th>Con n = 4 da</th><th>Dónde aparece</th></tr></thead>
+          <tbody>
+            <tr><td>i</td><td>1, 2, 3, 4</td><td>triángulos, alas de la mariposa</td></tr>
+            <tr><td>n</td><td>4, 4, 4, 4</td><td>cuadrado</td></tr>
+            <tr><td>n - i</td><td>3, 2, 1, 0</td><td>espacios para alinear a la derecha o centrar</td></tr>
+            <tr><td>n - i + 1</td><td>4, 3, 2, 1</td><td>triángulo invertido con i de 1 a n</td></tr>
+            <tr><td>2 * i - 1</td><td>1, 3, 5, 7</td><td>pirámide, rombo, reloj de arena</td></tr>
+            <tr><td>2 * (n - i)</td><td>6, 4, 2, 0</td><td>hueco de la mariposa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tarjeta detector" id="detector">
+    <h3>Detector de fórmulas</h3>
+    <p>Escribe los números de una columna de tu tabla, fila por fila, y el tamaño n de tu dibujo. Te digo la fórmula.</p>
+    <div class="campos">
+      <div class="campo"><label for="det-nums">Números de la columna</label><input type="text" id="det-nums" value="1 3 5 7" autocomplete="off" spellcheck="false"></div>
+      <div class="campo"><label for="det-n">n del dibujo</label><input type="number" id="det-n" value="4" min="1" max="50"></div>
+    </div>
+    <div class="resultado" id="det-res" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- 4. Método 2 -->
+<section class="seccion" id="metodo-2">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">4</div>
+    <div class="prosa">
+      <h2>Método 2: decidir casilla por casilla</h2>
+      <p>Cuando la figura tiene huecos, bordes o diagonales, contar por fila se complica. Entonces piensa en una cuadrícula de n × n. La recorres con dos for (i es la fila, j la columna) y en cada casilla preguntas con un if: ¿aquí va asterisco?</p>
+    </div>
+  </div>
+  <div class="tarjeta bloque" id="cond">
+    <div class="cond-cuerpo">
+      <div class="bloque">
+        <h3>Elige las condiciones</h3>
+        <p>Cada condición enciende un grupo de casillas. Si eliges varias, se unen con <code>or</code>: basta que se cumpla una.</p>
+        <div class="chips" id="cond-chips"></div>
+        <div class="combos" id="cond-combos"><span>Prueba:</span></div>
+        <pre class="code"><code class="py" id="cond-code"></code></pre>
+      </div>
+      <div class="bloque">
+        <div class="control-n">
+          <label for="cond-n">n</label>
+          <input type="range" id="cond-n" min="3" max="11" value="7">
+          <output id="cond-n-val" for="cond-n">7</output>
+        </div>
+        <div class="figwrap" id="cond-fig"></div>
+        <p class="info" id="cond-info">Pasa el cursor o toca una casilla para ver la cuenta.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Figuras -->
+<section class="seccion" id="figuras">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">5</div>
+    <div class="prosa">
+      <h2>Las figuras, de fácil a difícil</h2>
+      <p>Cada figura trae su tabla con las fórmulas y el código de las dos formas. Cambia n y mira cómo todo se recalcula. Las figuras de dos partes muestran una línea roja donde se juntan.</p>
+    </div>
+  </div>
+
+  <div class="pegajosa" id="barra-figuras">
+    <div class="control-n">
+      <span>Tamaño</span>
+      <button class="btn" id="fig-menos" type="button" aria-label="Bajar n">−</button>
+      <label for="fig-n" class="mono">n =</label>
+      <output id="fig-n-val" for="fig-n">5</output>
+      <button class="btn" id="fig-mas" type="button" aria-label="Subir n">+</button>
+      <input type="range" id="fig-n" min="1" max="12" value="5" aria-label="Tamaño n">
+    </div>
+    <label class="check"><input type="checkbox" id="ver-esp" checked> Ver los espacios como ·</label>
+  </div>
+
+  <div class="figuras">
+    <article class="fcard" id="f-cuadrado" data-fig="cuadrado">
+      <div class="fc-cab"><h3>Cuadrado lleno</h3><div class="tags"><span class="tag m1">Método 1</span><span class="archivo">figuras/01_cuadrado.py</span></div></div>
+      <p class="fc-txt">Todas las filas son iguales: n asteriscos. Es el mejor ejemplo para entender un for dentro de otro.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):      # una vuelta por cada fila
+    for j in range(n):         # n asteriscos en esta fila
+        print("*", end="")     # end="" -&gt; no salta de línea
+    print()                    # fin de la fila: ahora sí saltamos</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    print("*" * n)             # "*" * 4 da "****"</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="cuadrado">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-cuadrado-hueco" data-fig="cuadrado_hueco">
+      <div class="fc-cab"><h3>Cuadrado hueco</h3><div class="tags"><span class="tag m2">Método 2</span><span class="archivo">figuras/02_cuadrado_hueco.py</span></div></div>
+      <p class="fc-txt">Solo el borde lleva asteriscos. Casilla por casilla: hay asterisco si estás en la primera o la última fila, o en la primera o la última columna.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: casillas</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):          # i = fila
+    for j in range(1, n + 1):      # j = columna
+        if i == 1 or i == n or j == 1 or j == n:   # ¿estoy en el borde?
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    if i == 1 or i == n:                    # primera y última fila: llenas
+        print("*" * n)
+    else:                                   # filas del medio
+        print("*" + " " * (n - 2) + "*")    # borde + hueco + borde</code></pre></div>
+    </article>
+
+    <article class="fcard" id="f-triangulo" data-fig="triangulo">
+      <div class="fc-cab"><h3>Triángulo rectángulo</h3><div class="tags"><span class="tag m1">Método 1</span><span class="archivo">figuras/03_triangulo.py</span></div></div>
+      <p class="fc-txt">La fila i lleva i asteriscos. Por eso el for de adentro usa <code>range(i)</code>: en cada fila da una vuelta más.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):      # i = 1, 2, 3, ..., n
+    for j in range(i):         # en la fila i van i asteriscos
+        print("*", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    print("*" * i)</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="triangulo">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-triangulo-invertido" data-fig="triangulo_invertido">
+      <div class="fc-cab"><h3>Triángulo invertido</h3><div class="tags"><span class="tag m1">Método 1</span><span class="archivo">figuras/04_triangulo_invertido.py</span></div></div>
+      <p class="fc-txt">El mismo triángulo con i contando hacia atrás: <code>range(n, 0, -1)</code> da n, n − 1, …, 1. Mira la columna i de la tabla.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(n, 0, -1):      # i = n, n-1, ..., 1 (cuenta hacia atrás)
+    for j in range(i):         # i asteriscos
+        print("*", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(n, 0, -1):
+    print("*" * i)</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="triangulo_invertido">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-triangulo-derecha" data-fig="triangulo_derecha">
+      <div class="fc-cab"><h3>Triángulo alineado a la derecha</h3><div class="tags"><span class="tag m1">Método 1</span><span class="archivo">figuras/05_triangulo_derecha.py</span></div></div>
+      <p class="fc-txt">Antes de los asteriscos van n − i espacios. Así todas las filas terminan en la misma columna.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):
+    for j in range(n - i):     # primero los espacios: n - i
+        print(" ", end="")
+    for j in range(i):         # después los asteriscos: i
+        print("*", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    print(" " * (n - i) + "*" * i)    # el + pega los dos textos</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="triangulo_derecha">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-piramide" data-fig="piramide">
+      <div class="fc-cab"><h3>Pirámide</h3><div class="tags"><span class="tag m1">Método 1</span><span class="archivo">figuras/06_piramide.py</span></div></div>
+      <p class="fc-txt">Los espacios bajan de 1 en 1 y los asteriscos suben de 2 en 2. Es la base del rombo y del reloj de arena, así que vale la pena entenderla bien.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):        # i = número de fila: 1, 2, ..., n
+    for j in range(n - i):       # primero, n - i espacios
+        print(" ", end="")
+    for j in range(2 * i - 1):   # después, 2*i - 1 asteriscos
+        print("*", end="")
+    print()                      # fin de la fila</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    print(" " * (n - i) + "*" * (2 * i - 1))</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="piramide">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-rombo" data-fig="rombo">
+      <div class="fc-cab"><h3>Rombo</h3><div class="tags"><span class="tag m1">Método 1</span><span class="tag dos">Dos partes</span><span class="archivo">figuras/07_rombo.py</span></div></div>
+      <p class="fc-txt">Una pirámide y debajo la misma pirámide al revés. Las fórmulas no cambian, solo cambia por dónde va i. Abajo empieza en n − 1 para no repetir la fila del medio.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py"># Parte de arriba: una pirámide (i = 1, 2, ..., n)
+for i in range(1, n + 1):
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(2 * i - 1):
+        print("*", end="")
+    print()
+# Parte de abajo: la misma pirámide al revés (i = n-1, ..., 1)
+for i in range(n - 1, 0, -1):
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(2 * i - 1):
+        print("*", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    print(" " * (n - i) + "*" * (2 * i - 1))
+for i in range(n - 1, 0, -1):
+    print(" " * (n - i) + "*" * (2 * i - 1))</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="rombo">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-reloj" data-fig="reloj">
+      <div class="fc-cab"><h3>Reloj de arena</h3><div class="tags"><span class="tag m1">Método 1</span><span class="tag dos">Dos partes</span><span class="archivo">figuras/08_reloj_de_arena.py</span></div></div>
+      <p class="fc-txt">El rombo al revés: arriba la pirámide invertida (i de n a 1) y abajo la pirámide normal (i de 2 a n). Abajo empieza en 2 para no repetir la cintura.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py"># Parte de arriba: pirámide invertida (i = n, n-1, ..., 1)
+for i in range(n, 0, -1):
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(2 * i - 1):
+        print("*", end="")
+    print()
+# Parte de abajo: pirámide normal (i = 2, 3, ..., n)
+for i in range(2, n + 1):
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(2 * i - 1):
+        print("*", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(n, 0, -1):
+    print(" " * (n - i) + "*" * (2 * i - 1))
+for i in range(2, n + 1):
+    print(" " * (n - i) + "*" * (2 * i - 1))</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="reloj">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-x" data-fig="x">
+      <div class="fc-cab"><h3>Letra X</h3><div class="tags"><span class="tag m2">Método 2</span><span class="archivo">figuras/09_x.py</span></div></div>
+      <p class="fc-txt">Dos diagonales. En la diagonal \ la columna es igual a la fila (j == i). En la diagonal / se cumple j == n − i + 1. Con n impar la X tiene centro.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Casilla por casilla</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):              # i = fila
+    for j in range(1, n + 1):          # j = columna
+        if j == i or j == n - i + 1:   # ¿estoy en alguna diagonal?
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()</code></pre></div>
+    </article>
+
+    <article class="fcard" id="f-mariposa" data-fig="mariposa">
+      <div class="fc-cab"><h3>Mariposa</h3><div class="tags"><span class="tag m1">Método 1</span><span class="tag dos">Dos partes</span><span class="archivo">figuras/10_mariposa.py</span></div></div>
+      <p class="fc-txt">Cada fila tiene tres grupos: ala izquierda (i asteriscos), hueco (2 · (n − i) espacios) y ala derecha (i asteriscos). Arriba i va de 1 a n y abajo de n − 1 a 1, igual que en el rombo. Si tu profe la quiere con dos filas llenas en el centro, cambia <code>range(n - 1, 0, -1)</code> por <code>range(n, 0, -1)</code>.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py"># Parte de arriba (i = 1, 2, ..., n)
+for i in range(1, n + 1):
+    for j in range(i):                 # ala izquierda
+        print("*", end="")
+    for j in range(2 * (n - i)):       # hueco del centro
+        print(" ", end="")
+    for j in range(i):                 # ala derecha
+        print("*", end="")
+    print()
+# Parte de abajo (i = n-1, ..., 1): lo mismo al revés
+for i in range(n - 1, 0, -1):
+    for j in range(i):
+        print("*", end="")
+    for j in range(2 * (n - i)):
+        print(" ", end="")
+    for j in range(i):
+        print("*", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    print("*" * i + " " * (2 * (n - i)) + "*" * i)
+for i in range(n - 1, 0, -1):
+    print("*" * i + " " * (2 * (n - i)) + "*" * i)</code></pre></div>
+      <div class="fc-pie"><button class="enlace" type="button" data-lab="mariposa">Abrir en el laboratorio</button></div>
+    </article>
+
+    <article class="fcard" id="f-piramide-hueca" data-fig="piramide_hueca">
+      <div class="fc-cab"><h3>Pirámide hueca</h3><div class="tags"><span class="tag m1">Método 1</span><span class="tag m2">+ Método 2</span><span class="archivo">figuras/11_piramide_hueca.py</span></div></div>
+      <p class="fc-txt">Combina los dos métodos. Los espacios de la izquierda se cuentan (n − i). El resto de la fila mide 2 · i − 1 y ahí decides casilla por casilla: asterisco en los dos bordes y en toda la última fila.</p>
+      <div class="fc-cuerpo"><div class="figwrap fc-fig"></div><div class="fc-datos"></div></div>
+      <div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):
+    for j in range(n - i):                       # espacios de la izquierda
+        print(" ", end="")
+    for j in range(1, 2 * i):                    # j = 1, 2, ..., 2*i - 1
+        if j == 1 or j == 2 * i - 1 or i == n:   # borde o base
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    if i == 1:
+        print(" " * (n - 1) + "*")                              # la punta
+    elif i == n:
+        print("*" * (2 * n - 1))                                # la base
+    else:
+        print(" " * (n - i) + "*" + " " * (2 * i - 3) + "*")    # borde, hueco, borde</code></pre></div>
+    </article>
+  </div>
+</section>
+
+<!-- 6. Laboratorio -->
+<section class="seccion" id="laboratorio">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">6</div>
+    <div class="prosa">
+      <h2>Laboratorio: arma tu propia figura</h2>
+      <p>Escribe las fórmulas de cada columna (con i, n y números) y el rango de i. La figura y el código de Python se arman solos. Es la mejor forma de practicar el Método 1: intenta hacer un reloj de arena o una mariposa sin mirar.</p>
+    </div>
+  </div>
+  <div class="tarjeta lab" id="lab">
+    <div class="lab-ctrl">
+      <div class="combos" id="lab-presets"><span>Cargar:</span></div>
+      <div class="control-n">
+        <label for="lab-n">n</label>
+        <input type="range" id="lab-n" min="1" max="12" value="5">
+        <output id="lab-n-val" for="lab-n">5</output>
+      </div>
+      <fieldset>
+        <legend>Filas</legend>
+        <div class="lab-rango"><span>Parte 1: i va desde</span><input type="text" id="lab-d1" aria-label="Parte 1, i desde" autocomplete="off" spellcheck="false"><span>hasta</span><input type="text" id="lab-h1" aria-label="Parte 1, i hasta" autocomplete="off" spellcheck="false"></div>
+        <label class="check"><input type="checkbox" id="lab-dos"> Agregar una parte 2 debajo, con las mismas columnas</label>
+        <div class="lab-rango" id="lab-p2"><span>Parte 2: i va desde</span><input type="text" id="lab-d2" aria-label="Parte 2, i desde" autocomplete="off" spellcheck="false"><span>hasta</span><input type="text" id="lab-h2" aria-label="Parte 2, i hasta" autocomplete="off" spellcheck="false"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Columnas de cada fila (de izquierda a derecha)</legend>
+        <div id="lab-segs" class="bloque"></div>
+        <div><button class="btn" id="lab-add" type="button">+ Agregar columna</button></div>
+      </fieldset>
+    </div>
+    <div class="lab-sal">
+      <div class="avisos" id="lab-avisos" aria-live="polite"></div>
+      <div class="figwrap" id="lab-fig"></div>
+      <div class="tabs" id="lab-tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py" id="lab-c1"></code></pre><pre class="code" hidden><code class="py" id="lab-c2"></code></pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Examen -->
+<section class="seccion" id="examen">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">7</div>
+    <div class="prosa">
+      <h2>En el examen: cómo atacar cualquier figura</h2>
+      <p>Si te piden una figura que nunca viste, sigue estos pasos en orden. Casi siempre es una combinación de cosas que ya conoces.</p>
+    </div>
+  </div>
+  <div class="tarjeta bloque">
+    <ol class="pasos-lista">
+      <li><span>Dibuja la figura en papel con un n pequeño (4 o 5) y numera las filas.</span></li>
+      <li><span>Elige el método. Si cada fila son grupos seguidos de espacios y asteriscos, usa el <strong>Método 1</strong>. Si tiene huecos, bordes o diagonales, usa el <strong>Método 2</strong>, o combina los dos como en la pirámide hueca.</span></li>
+      <li><span>Si la figura crece y luego decrece (o al revés), pártela en dos: arriba y abajo. Casi siempre la parte de abajo es la de arriba con el range al revés.</span></li>
+      <li><span>Haz la tabla y saca las fórmulas. Compruébalas con dos filas distintas.</span></li>
+      <li><span>Escribe el código: un for para las filas y, dentro, lo que va en cada fila. No olvides el <code>print()</code> al final de cada fila.</span></li>
+      <li><span>Pruébalo en papel con n = 1 y n = 2. Ahí es donde más se rompen las figuras.</span></li>
+    </ol>
+  </div>
+
+  <h3>Los errores que más se cometen</h3>
+  <div class="errores">
+    <div class="tarjeta error-card">
+      <h3>Olvidar end=""</h3>
+      <p>Cada asterisco sale en su propia línea, y la figura queda como una columna.</p>
+      <div class="mal">print("*")</div>
+      <div class="bien">print("*", end="")</div>
+    </div>
+    <div class="tarjeta error-card">
+      <h3>El print() con la sangría equivocada</h3>
+      <p>Dentro del for de adentro, salta de línea después de cada asterisco. Fuera de los dos for, todo sale en una sola línea. Va dentro del for de filas y fuera del de columnas.</p>
+      <div class="bien">for i in range(1, n + 1):
+    for j in range(i):
+        print("*", end="")
+    print()</div>
+    </div>
+    <div class="tarjeta error-card">
+      <h3>Empezar en 0 sin darte cuenta</h3>
+      <p><code>range(n)</code> da 0, 1, …, n − 1. Con fórmulas como 2 · i − 1, la primera fila da −1 y no sale nada.</p>
+      <div class="mal">for i in range(n):</div>
+      <div class="bien">for i in range(1, n + 1):</div>
+    </div>
+    <div class="tarjeta error-card">
+      <h3>Contar hacia atrás mal</h3>
+      <p>El segundo número del range no se incluye, tampoco cuando cuentas hacia atrás. Para llegar hasta 1, el tope es 0.</p>
+      <div class="mal">range(n, 1, -1)    # n, …, 2 (se salta el 1)</div>
+      <div class="bien">range(n, 0, -1)    # n, …, 1</div>
+    </div>
+    <div class="tarjeta error-card">
+      <h3>input() sin int()</h3>
+      <p><code>input()</code> siempre devuelve texto, y <code>range("5")</code> da error. Conviértelo a número.</p>
+      <div class="mal">n = input("Tamaño: ")</div>
+      <div class="bien">n = int(input("Tamaño: "))</div>
+    </div>
+    <div class="tarjeta error-card">
+      <h3>Repetir la fila del medio</h3>
+      <p>En el rombo, el reloj de arena y la mariposa, la segunda parte empieza un paso después. Si no, la fila del centro sale dos veces.</p>
+      <div class="mal">for i in range(n, 0, -1):      # rombo, abajo</div>
+      <div class="bien">for i in range(n - 1, 0, -1):  # rombo, abajo</div>
+    </div>
+    <div class="tarjeta error-card">
+      <h3>Dividir con /</h3>
+      <p>En Python, <code>/</code> da un número con decimales, y <code>" " * 2.0</code> es un error. Para dividir sin decimales usa <code>//</code>.</p>
+      <div class="mal">" " * (n / 2)</div>
+      <div class="bien">" " * (n // 2)</div>
+    </div>
+    <div class="tarjeta error-card">
+      <h3>Asteriscos con espacio</h3>
+      <p>Algunos profes piden <code>* * *</code> en vez de <code>***</code>. Se arregla en un solo lugar: imprime <code>"* "</code> en vez de <code>"*"</code>, y los espacios de la izquierda también se duplican.</p>
+      <div class="bien">print("* ", end="")</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Ejercicios -->
+<section class="seccion" id="ejercicios">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">8</div>
+    <div class="prosa">
+      <h2>Ejercicios tipo examen</h2>
+      <p>En todos, el programa pide n al usuario con <code>n = int(input())</code> y dibuja la figura. Intenta cada uno en papel antes de abrir la pista, y la pista antes de ver la solución.</p>
+    </div>
+  </div>
+  <div class="ejercicios">
+    <article class="tarjeta ej" data-ej="flecha" data-n="4">
+      <div class="ej-cab"><h3>1. Flecha hacia la derecha</h3><span class="nivel facil">Fácil</span></div>
+      <p>Ejemplo con n = 4:</p>
+      <div class="figwrap ej-fig"></div>
+      <details><summary>Ver pista</summary><p>Son dos triángulos: uno que crece (i de 1 a n) y otro que decrece (i de n − 1 a 1). En los dos, la fila i lleva i asteriscos.</p></details>
+      <details><summary>Ver solución</summary><pre class="code"><code class="py">for i in range(1, n + 1):          # el triángulo que crece
+    for j in range(i):
+        print("*", end="")
+    print()
+for i in range(n - 1, 0, -1):      # el triángulo que decrece
+    for j in range(i):
+        print("*", end="")
+    print()</code></pre><p class="archivo">ejercicios/sol1_flecha.py</p></details>
+    </article>
+    <article class="tarjeta ej" data-ej="tri_inv_der" data-n="4">
+      <div class="ej-cab"><h3>2. Triángulo invertido a la derecha</h3><span class="nivel facil">Fácil</span></div>
+      <p>Ejemplo con n = 4:</p>
+      <div class="figwrap ej-fig"></div>
+      <details><summary>Ver pista</summary><p>Haz la tabla: los espacios son 0, 1, 2, 3 y los asteriscos 4, 3, 2, 1. Si i cuenta hacia atrás (de n a 1), las fórmulas son las del triángulo alineado a la derecha.</p></details>
+      <details><summary>Ver solución</summary><pre class="code"><code class="py">for i in range(n, 0, -1):
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(i):
+        print("*", end="")
+    print()</code></pre><p class="archivo">ejercicios/sol2_triangulo_invertido_derecha.py</p></details>
+    </article>
+    <article class="tarjeta ej" data-ej="pir_inv" data-n="4">
+      <div class="ej-cab"><h3>3. Pirámide invertida</h3><span class="nivel media">Media</span></div>
+      <p>Ejemplo con n = 4:</p>
+      <div class="figwrap ej-fig"></div>
+      <details><summary>Ver pista</summary><p>Es la mitad de arriba del reloj de arena: la pirámide con i contando de n a 1.</p></details>
+      <details><summary>Ver solución</summary><pre class="code"><code class="py">for i in range(n, 0, -1):
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(2 * i - 1):
+        print("*", end="")
+    print()</code></pre><p class="archivo">ejercicios/sol3_piramide_invertida.py</p></details>
+    </article>
+    <article class="tarjeta ej" data-ej="z" data-n="5">
+      <div class="ej-cab"><h3>4. Letra Z</h3><span class="nivel media">Media</span></div>
+      <p>Ejemplo con n = 5:</p>
+      <div class="figwrap ej-fig"></div>
+      <details><summary>Ver pista</summary><p>Método 2, con tres condiciones unidas por <code>or</code>: la fila de arriba, la de abajo y una diagonal. ¿Cuál de las dos diagonales? Pruébalo en la sección 4.</p></details>
+      <details><summary>Ver solución</summary><pre class="code"><code class="py">for i in range(1, n + 1):
+    for j in range(1, n + 1):
+        if i == 1 or i == n or j == n - i + 1:
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()</code></pre><p class="archivo">ejercicios/sol4_letra_z.py</p></details>
+    </article>
+    <article class="tarjeta ej" data-ej="tablero" data-n="5">
+      <div class="ej-cab"><h3>5. Tablero de ajedrez</h3><span class="nivel media">Media</span></div>
+      <p>Ejemplo con n = 5:</p>
+      <div class="figwrap ej-fig"></div>
+      <details><summary>Ver pista</summary><p>Suma i + j en cada casilla con asterisco: siempre da par. En Python, "x es par" se escribe <code>x % 2 == 0</code>.</p></details>
+      <details><summary>Ver solución</summary><pre class="code"><code class="py">for i in range(1, n + 1):
+    for j in range(1, n + 1):
+        if (i + j) % 2 == 0:      # ¿i + j es par?
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()</code></pre><p class="archivo">ejercicios/sol5_tablero.py</p></details>
+    </article>
+    <article class="tarjeta ej" data-ej="rombo_hueco" data-n="4">
+      <div class="ej-cab"><h3>6. Rombo hueco</h3><span class="nivel dificil">Difícil</span></div>
+      <p>Ejemplo con n = 4:</p>
+      <div class="figwrap ej-fig"></div>
+      <details><summary>Ver pista</summary><p>Junta dos ideas: el rombo (dos partes, i de 1 a n y de n − 1 a 1) y la pirámide hueca (en cada fila, solo los dos bordes). Cuidado: aquí la fila del medio tampoco va llena.</p></details>
+      <details><summary>Ver solución</summary><div class="tabs"><div role="tablist"><button role="tab" type="button" aria-selected="true">Forma 1: bucles</button><button role="tab" type="button" aria-selected="false">Forma 2: corta</button></div>
+        <pre class="code"><code class="py">for i in range(1, n + 1):                  # mitad de arriba
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(1, 2 * i):
+        if j == 1 or j == 2 * i - 1:       # solo los dos bordes
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()
+for i in range(n - 1, 0, -1):              # mitad de abajo
+    for j in range(n - i):
+        print(" ", end="")
+    for j in range(1, 2 * i):
+        if j == 1 or j == 2 * i - 1:
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()</code></pre><pre class="code" hidden><code class="py">for i in range(1, n + 1):
+    if i == 1:
+        print(" " * (n - 1) + "*")
+    else:
+        print(" " * (n - i) + "*" + " " * (2 * i - 3) + "*")
+for i in range(n - 1, 0, -1):
+    if i == 1:
+        print(" " * (n - 1) + "*")
+    else:
+        print(" " * (n - i) + "*" + " " * (2 * i - 3) + "*")</code></pre></div><p class="archivo">ejercicios/sol6_rombo_hueco.py</p></details>
+    </article>
+  </div>
+</section>
+
+<!-- Archivos -->
+<!-- 9. Actividad 13 -->
+<section class="seccion" id="actividad-13">
+  <div class="sec-cab">
+    <div class="sec-num" aria-hidden="true">9</div>
+    <div class="prosa">
+      <h2>Las 5 figuras de la Actividad 13</h2>
+      <p>La M, el triángulo invertido, el rombo sólido, el cuadrado con diagonales y la estrella con cruz, en forma de presentación. En cada figura, primero la construyes paso a paso y después ves el programa completo con lo que escribe en la consola.</p>
+    </div>
+  </div>
+
+  <div class="a13-deck" id="a13" tabindex="-1" role="region" aria-roledescription="presentación" aria-label="Actividad 13, las 5 figuras">
+    <div class="a13-barra">
+      <div class="a13-tabs" aria-label="Partes de la presentación"></div>
+      <div class="a13-acc"><span class="a13-cuenta"></span><button type="button" class="btn a13-pc">Pantalla completa</button></div>
+      <div class="a13-progreso" aria-hidden="true"><span></span></div>
+    </div>
+
+    <div class="a13-escenario">
+      <div class="a13-diapo" data-nombre="inicio">
+        <div class="a13-cab">
+          <div class="eyebrow">CFGS 2º DAM · UD03 · Actividad 13</div>
+          <h3>Cinco figuras, dos métodos</h3>
+          <p class="a13-sub">Antes de programar una figura, decide cómo la vas a pensar. Si es maciza, cuentas espacios y asteriscos en cada fila (<a href="#metodo-1">Método 1</a>). Si está hecha de líneas, preguntas casilla por casilla (<a href="#metodo-2">Método 2</a>).</p>
+        </div>
+        <div class="a13-dos">
+          <div class="a13-col">
+            <div class="tabla-wrap">
+              <table>
+                <thead><tr><th>Figura</th><th>Método</th><th>Por qué</th></tr></thead>
+                <tbody>
+                  <tr><td>1 · Letra M</td><td><span class="tag m2">Método 2</span></td><td>dos palos y dos diagonales</td></tr>
+                  <tr><td>2 · Triángulo invertido</td><td><span class="tag m2">Método 2</span></td><td>borde y relleno salteado</td></tr>
+                  <tr><td>3 · Rombo sólido</td><td><span class="tag m1">Método 1</span></td><td>es macizo</td></tr>
+                  <tr><td>4 · Cuadrado con diagonales</td><td><span class="tag m2">Método 2</span></td><td>borde, diagonales y un cuadro</td></tr>
+                  <tr><td>5 · Estrella con cruz</td><td><span class="tag m2">Método 2</span></td><td>cuatro líneas por el centro</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Cada figura tiene dos diapositivas. En la primera eliges un paso, cambias n y pasas el ratón por las casillas (o las tocas) para ver la cuenta. En la segunda ves el programa completo y lo que escribe en la consola.</p>
+          </div>
+          <div class="a13-minis" aria-label="Ir a una figura"></div>
+        </div>
+      </div>
+
+      <div class="a13-diapo" data-fig="m" data-tipo="pasos" hidden></div>
+      <div class="a13-diapo" data-fig="m" data-tipo="programa" hidden></div>
+      <div class="a13-diapo" data-fig="triangulo" data-tipo="pasos" hidden></div>
+      <div class="a13-diapo" data-fig="triangulo" data-tipo="programa" hidden></div>
+      <div class="a13-diapo" data-fig="rombo" data-tipo="pasos" hidden></div>
+      <div class="a13-diapo" data-fig="rombo" data-tipo="programa" hidden></div>
+      <div class="a13-diapo" data-fig="cuadrado" data-tipo="pasos" hidden></div>
+      <div class="a13-diapo" data-fig="cuadrado" data-tipo="programa" hidden></div>
+      <div class="a13-diapo" data-fig="estrella" data-tipo="pasos" hidden></div>
+      <div class="a13-diapo" data-fig="estrella" data-tipo="programa" hidden></div>
+
+      <div class="a13-diapo" data-nombre="examen" hidden>
+        <div class="a13-cab">
+          <div class="eyebrow">Para el examen</div>
+          <h3>Cómo atacar una figura nueva</h3>
+          <p class="a13-sub">El camino que seguiste con estas cinco sirve para cualquier figura hecha de líneas.</p>
+        </div>
+        <div class="a13-dos">
+          <ol class="pasos-lista">
+            <li><span><b>Dibújala en papel cuadriculado</b> con un n pequeño y numera las filas (i) y las columnas (j).</span></li>
+            <li><span><b>Divídela en líneas:</b> bordes, diagonales, centro…</span></li>
+            <li><span><b>Escribe una condición para cada línea.</b> Casi siempre son <code>i == 1</code>, <code>i == n</code>, <code>j == 1</code>, <code>j == n</code>, <code>j == i</code>, <code>j == n - i + 1</code> o <code>i == centro</code>.</span></li>
+            <li><span><b>Si una línea solo va en una parte</b>, como la V de la M, añádele un <code>and</code> con su límite, entre paréntesis.</span></li>
+            <li><span><b>Junta todo con <code>or</code></b> y pruébalo con n = 5 o n = 7 antes de darlo por bueno.</span></li>
+          </ol>
+          <div class="a13-col">
+            <div class="a13-rotulo">Errores típicos en estas figuras</div>
+            <div class="a13-errores">
+              <div class="a13-err"><b>Olvidar los paréntesis</b><div class="mal">v = i &lt;= centro and j == i or j == n - i + 1</div><div class="bien">v = i &lt;= centro and (j == i or j == n - i + 1)</div><p>Python hace el <code>and</code> antes que el <code>or</code>.</p></div>
+              <div class="a13-err"><b>La diagonal / sin el + 1</b><div class="mal">j == n - i</div><div class="bien">j == n - i + 1</div><p>Con <code>n - i</code>, la fila 1 empezaría en la columna n − 1.</p></div>
+              <div class="a13-err"><b>Llegar hasta n en el triángulo</b><div class="mal">for j in range(1, n + 1):</div><div class="bien">for j in range(1, ancho + 1):</div><p>Cada fila del triángulo tiene su propio largo.</p></div>
+              <div class="a13-err"><b>Repetir la fila del medio del rombo</b><div class="mal">for i in range(n, 0, -1):</div><div class="bien">for i in range(n - 1, 0, -1):</div><p>La mitad de abajo empieza en n − 1.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="a13-pie">
+      <button type="button" class="btn" id="a13-ant">← Anterior</button>
+      <span class="a13-pista">Con la presentación seleccionada también puedes usar <kbd>←</kbd> <kbd>→</kbd></span>
+      <button type="button" class="btn primario" id="a13-sig">Siguiente →</button>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="archivos">
+  <div class="tarjeta bloque">
+    <h3>Los archivos .py para practicar en tu computadora</h3>
+    <p>Cada figura y cada solución está en su propio archivo, con la explicación en los comentarios del principio. Abre una terminal en la carpeta de la clase y escribe, por ejemplo:</p>
+    <pre class="code"><code class="py">python figuras/10_mariposa.py</code></pre>
+    <p>El programa te pide n y dibuja la figura con las dos formas, una debajo de la otra.</p>
+    <ul class="archivos">
+      <li><code>figuras/01_cuadrado.py</code></li>
+      <li><code>figuras/02_cuadrado_hueco.py</code></li>
+      <li><code>figuras/03_triangulo.py</code></li>
+      <li><code>figuras/04_triangulo_invertido.py</code></li>
+      <li><code>figuras/05_triangulo_derecha.py</code></li>
+      <li><code>figuras/06_piramide.py</code></li>
+      <li><code>figuras/07_rombo.py</code></li>
+      <li><code>figuras/08_reloj_de_arena.py</code></li>
+      <li><code>figuras/09_x.py</code></li>
+      <li><code>figuras/10_mariposa.py</code></li>
+      <li><code>figuras/11_piramide_hueca.py</code></li>
+      <li><code>ejercicios/sol1_flecha.py</code> … <code>sol6_rombo_hueco.py</code></li>
+      <li><code>actividad13/ej1_letra_m.py</code> … <code>ej5_estrella.py</code></li>
+    </ul>
+  </div>
+  <p class="pie-pagina">Todo el código de esta página se probó en Python 3.13 con n del 1 al 9, y las dos formas de cada figura dan exactamente la misma salida. Las consolas de la Actividad 13 muestran lo que escriben sus programas de la carpeta actividad13 con cada n.</p>
+</section>
+
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= Resaltado de Python ================= */
+const KW = new Set(['for', 'in', 'if', 'elif', 'else', 'or', 'and', 'not', 'while', 'def', 'return']);
+const BI = new Set(['print', 'range', 'int', 'input', 'len', 'str']);
+function resaltar(src) {
+  const re = /(#.*$)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|(\b\d+\b)|(\b[A-Za-z_]\w*\b)/gm;
+  let out = '', last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    if (m[1]) out += `<span class="tk-c">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tk-s">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tk-n">${m[3]}</span>`;
+    else if (KW.has(m[4])) out += `<span class="tk-k">${m[4]}</span>`;
+    else if (BI.has(m[4])) out += `<span class="tk-b">${m[4]}</span>`;
+    else out += esc(m[4]);
+    last = re.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+function pintarCodigo(el, texto) { el.dataset.src = texto; el.innerHTML = resaltar(texto); }
+
+/* ================= Mini intérprete de fórmulas ================= */
+const PREC = { '+': 1, '-': 1, '*': 2, '//': 2, '%': 2, neg: 3 };
+const prec = nd => nd.k ? 4 : PREC[nd.op];
+function parsear(texto, vars) {
+  const src = String(texto).trim();
+  if (!src) throw new Error('Falta escribir una fórmula.');
+  const toks = [];
+  const re = /\s*(\d+|[A-Za-z_]\w*|\/\/|[-+*%()\/]|\S)/y;
+  let m;
+  while (re.lastIndex < src.length && (m = re.exec(src))) toks.push(m[1]);
+  let p = 0;
+  const ver = () => toks[p], tomar = () => toks[p++];
+  function suma() {
+    let a = producto();
+    while (ver() === '+' || ver() === '-') { const op = tomar(); a = { op, a, b: producto() }; }
+    return a;
+  }
+  function producto() {
+    let a = unario();
+    for (;;) {
+      const t = ver();
+      if (t === '*' || t === '//' || t === '%') { tomar(); a = { op: t, a, b: unario() }; }
+      else if (t === '/') throw new Error('Usa // para dividir: en Python, / da decimales y "*" * 2.5 es un error.');
+      else if (t !== undefined && (a.k === 'num' || a.paren) && /^[A-Za-z_(]/.test(t)) { a = { op: '*', a, b: unario() }; }
+      else break;
+    }
+    return a;
+  }
+  function unario() {
+    if (ver() === '-') { tomar(); return { op: 'neg', a: unario() }; }
+    if (ver() === '+') { tomar(); return unario(); }
+    return atomo();
+  }
+  function atomo() {
+    const t = tomar();
+    if (t === undefined) throw new Error('A la fórmula le falta algo al final.');
+    if (/^\d+$/.test(t)) return { k: 'num', v: Number(t) };
+    if (/^[A-Za-z_]\w*$/.test(t)) {
+      if (!vars.includes(t)) throw new Error(vars.length === 1 ? `Aquí solo puedes usar n y números ("${t}" no vale).` : `No conozco "${t}". Usa i, n y números.`);
+      return { k: 'var', v: t };
+    }
+    if (t === '(') {
+      const e = suma();
+      if (tomar() !== ')') throw new Error('Falta cerrar un paréntesis.');
+      return Object.assign({}, e, { paren: true });
+    }
+    throw new Error(`No entiendo "${t}" en la fórmula.`);
+  }
+  const arbol = suma();
+  if (p < toks.length) throw new Error(`No entiendo "${toks[p]}" en la fórmula.`);
+  return arbol;
+}
+function evaluar(nd, env) {
+  if (nd.k === 'num') return nd.v;
+  if (nd.k === 'var') return env[nd.v];
+  if (nd.op === 'neg') return -evaluar(nd.a, env);
+  const a = evaluar(nd.a, env), b = evaluar(nd.b, env);
+  switch (nd.op) {
+    case '+': return a + b;
+    case '-': return a - b;
+    case '*': return a * b;
+    case '//': if (b === 0) throw new Error('La fórmula divide entre cero.'); return Math.floor(a / b);
+    case '%': if (b === 0) throw new Error('La fórmula divide entre cero.'); return ((a % b) + b) % b;
+  }
+}
+function aCodigo(nd) {
+  if (nd.k === 'num') return String(nd.v);
+  if (nd.k === 'var') return nd.v;
+  if (nd.op === 'neg') { const s = aCodigo(nd.a); return '-' + (prec(nd.a) < 3 ? `(${s})` : s); }
+  const P = prec(nd);
+  let A = aCodigo(nd.a), B = aCodigo(nd.b);
+  if (prec(nd.a) < P) A = `(${A})`;
+  const pb = prec(nd.b);
+  if (pb < P || (pb === P && !(nd.op === '+' || (nd.op === '*' && nd.b.op === '*')))) B = `(${B})`;
+  return `${A} ${nd.op} ${B}`;
+}
+const esAtomo = nd => !!nd.k;
+function lineal(nd, v) {
+  const f = x => evaluar(nd, { [v]: x });
+  const b = f(0), a = f(1) - b;
+  for (const t of [2, 3, 7, 12]) if (f(t) !== a * t + b) return null;
+  return { a, b };
+}
+function fmtLin(a, b, v) {
+  if (a === 0) return String(b);
+  const termino = Math.abs(a) === 1 ? v : `${Math.abs(a)} * ${v}`;
+  if (a < 0) return b > 0 ? `${b} - ${termino}` : (b === 0 ? `-${termino}` : `-${termino} - ${-b}`);
+  return b === 0 ? termino : (b > 0 ? `${termino} + ${b}` : `${termino} - ${-b}`);
+}
+
+/* ================= Rangos de i ================= */
+function compilarParte(d, h, nombre) {
+  const dN = parsear(d, ['n']), hN = parsear(h, ['n']);
+  const asc = evaluar(dN, { n: 100 }) <= evaluar(hN, { n: 100 });
+  return { d, h, dN, hN, asc, nombre: nombre || '' };
+}
+function valoresI(parte, n) {
+  const d = evaluar(parte.dN, { n }), h = evaluar(parte.hN, { n });
+  const out = [];
+  if (parte.asc) for (let i = d; i <= h && out.length < 200; i++) out.push(i);
+  else for (let i = d; i >= h && out.length < 200; i--) out.push(i);
+  return out;
+}
+function codigoRange(parte) {
+  const D = aCodigo(parte.dN);
+  const L = lineal(parte.hN, 'n');
+  const H = L ? fmtLin(L.a, L.b + (parte.asc ? 1 : -1), 'n') : `${aCodigo(parte.hN)} ${parte.asc ? '+' : '-'} 1`;
+  return parte.asc ? `range(${D}, ${H})` : `range(${D}, ${H}, -1)`;
+}
+function etiquetaRango(parte) {
+  const bonito = s => aCodigo(parsear(s, ['n'])).replace(/ - /g, ' − ');
+  return `i = ${bonito(parte.d)} … ${bonito(parte.h)}`;
+}
+
+/* ================= Definiciones de las figuras ================= */
+const PIR = [[' ', 'n - i'], ['*', '2 * i - 1']];
+const DOS_ROMBO = [['1', 'n', 'arriba'], ['n - 1', '1', 'abajo']];
+const FIGS = {
+  cuadrado: { stem: '01_cuadrado', partes: [['1', 'n']], segs: [['*', 'n']] },
+  cuadrado_hueco: { stem: '02_cuadrado_hueco', casillas: [['i == 1', (n, i, j) => i === 1], ['i == n', (n, i, j) => i === n], ['j == 1', (n, i, j) => j === 1], ['j == n', (n, i, j) => j === n]] },
+  triangulo: { stem: '03_triangulo', partes: [['1', 'n']], segs: [['*', 'i']] },
+  triangulo_invertido: { stem: '04_triangulo_invertido', partes: [['n', '1']], segs: [['*', 'i']] },
+  triangulo_derecha: { stem: '05_triangulo_derecha', partes: [['1', 'n']], segs: [[' ', 'n - i'], ['*', 'i']] },
+  piramide: { stem: '06_piramide', partes: [['1', 'n']], segs: PIR },
+  rombo: { stem: '07_rombo', partes: DOS_ROMBO, segs: PIR },
+  reloj: { stem: '08_reloj_de_arena', partes: [['n', '1', 'arriba'], ['2', 'n', 'abajo']], segs: PIR },
+  x: { stem: '09_x', casillas: [['j == i', (n, i, j) => j === i], ['j == n - i + 1', (n, i, j) => j === n - i + 1]] },
+  mariposa: { stem: '10_mariposa', partes: DOS_ROMBO, segs: [['*', 'i'], [' ', '2 * (n - i)'], ['*', 'i']] },
+  piramide_hueca: { stem: '11_piramide_hueca', partes: [['1', 'n']], segs: [[' ', 'n - i'], ['h', '2 * i - 1', (n, i) => i === n, 'i == n']] },
+  flecha: { stem: 'sol1_flecha', partes: DOS_ROMBO, segs: [['*', 'i']] },
+  tri_inv_der: { stem: 'sol2_triangulo_invertido_derecha', partes: [['n', '1']], segs: [[' ', 'n - i'], ['*', 'i']] },
+  pir_inv: { stem: 'sol3_piramide_invertida', partes: [['n', '1']], segs: PIR },
+  z: { stem: 'sol4_letra_z', casillas: [['i == 1', (n, i, j) => i === 1], ['i == n', (n, i, j) => i === n], ['j == n - i + 1', (n, i, j) => j === n - i + 1]] },
+  tablero: { stem: 'sol5_tablero', casillas: [['(i + j) % 2 == 0', (n, i, j) => (i + j) % 2 === 0]] },
+  rombo_hueco: { stem: 'sol6_rombo_hueco', partes: DOS_ROMBO, segs: [[' ', 'n - i'], ['h', '2 * i - 1', () => false, null]] },
+};
+
+function compilarFilas(partes, segs) {
+  let estrellas = 0;
+  return {
+    partes: partes.map(p => compilarParte(p[0], p[1], p[2])),
+    segs: segs.map(s => {
+      const nodo = parsear(s[1], ['i', 'n']);
+      const c = s[0] === ' ' ? 'sp' : (estrellas++ % 2 ? 'b' : 'a');
+      return { t: s[0], expr: aCodigo(nodo), nodo, lleno: s[2], llenoExpr: s[3], c };
+    }),
+  };
+}
+function calcularFilas(comp, n) {
+  const filas = [];
+  comp.partes.forEach((parte, pk) => {
+    valoresI(parte, n).forEach((i, k) => {
+      const vals = comp.segs.map(s => evaluar(s.nodo, { i, n }));
+      const cells = [];
+      comp.segs.forEach((s, q) => {
+        const v = Math.max(0, Math.min(vals[q], 400));
+        for (let x = 1; x <= v; x++) {
+          if (s.t === ' ') cells.push({ ch: ' ', c: 'sp' });
+          else if (s.t === '*') cells.push({ ch: '*', c: s.c });
+          else { const borde = x === 1 || x === v || s.lleno(n, i); cells.push({ ch: borde ? '*' : ' ', c: borde ? s.c : 'sp' }); }
+        }
+      });
+      filas.push({ i, vals, cells, parte: parte.nombre, corte: pk > 0 && k === 0 });
+    });
+  });
+  return filas;
+}
+function calcularCasillas(clausulas, n) {
+  const filas = [];
+  for (let i = 1; i <= n; i++) {
+    const cells = [];
+    for (let j = 1; j <= n; j++) {
+      const k = clausulas.findIndex(c => c[1](n, i, j));
+      cells.push({ ch: k >= 0 ? '*' : ' ', c: k >= 0 ? 'k' + (k % 4) : 'sp' });
+    }
+    filas.push({ i, cells });
+  }
+  return filas;
+}
+const compilados = {};
+function filasDe(key, n) {
+  const def = FIGS[key];
+  if (def.casillas) return calcularCasillas(def.casillas, n);
+  compilados[key] = compilados[key] || compilarFilas(def.partes, def.segs);
+  return calcularFilas(compilados[key], n);
+}
+function lineas(key, n) { return filasDe(key, n).map(f => f.cells.map(c => c.ch).join('').replace(/ +$/, '')); }
+window.__clase = { lineas, FIGS: Object.fromEntries(Object.entries(FIGS).map(([k, v]) => [k, v.stem])) };
+
+/* ================= Dibujar en casillas ================= */
+function pintarFigura(el, filas, { columnasJ = 0, etiquetas = true, nota = null, extraCols = 0, cursor = false, colsFijas = 0 } = {}) {
+  const ancho = Math.max(1, columnasJ, ...filas.map(f => f.cells.length + (cursor ? 1 : 0)));
+  let h = `<div class="fig" role="img" aria-label="Figura de asteriscos de ${filas.length} filas" style="--cols:${colsFijas || ancho + extraCols}">`;
+  if (columnasJ) {
+    h += `<div class="fr">${etiquetas ? '<span class="rl">i \\ j</span>' : ''}`;
+    for (let j = 1; j <= columnasJ; j++) h += `<span class="c cj">${j}</span>`;
+    h += '</div>';
+  }
+  filas.forEach((f, k) => {
+    h += `<div class="fr${f.corte ? ' corte' : ''}">`;
+    if (etiquetas) h += `<span class="rl">${f.i === undefined ? '' : f.i}</span>`;
+    f.cells.forEach((c, q) => { h += `<span class="c ${c.ch === '*' ? 's' : 'e'} ${c.c || ''}" data-i="${f.i}" data-j="${q + 1}"></span>`; });
+    if (cursor && k === filas.length - 1) h += '<span class="c e cursor"></span>';
+    if (nota) h += `<span class="nota">${nota(f)}</span>`;
+    h += '</div>';
+  });
+  el.innerHTML = h + '</div>';
+}
+const filasDeTexto = lineasTxt => lineasTxt.map(l => ({ cells: [...l].map(ch => ({ ch: ch === '*' ? '*' : ' ', c: ch === '*' ? 'a' : 'sp' })) }));
+
+function activarInfo(wrap, info, clausulas, getN) {
+  const mostrar = celda => {
+    $$('.c.hover', wrap).forEach(c => c.classList.remove('hover'));
+    if (!celda || !celda.dataset.i || celda.classList.contains('cj')) return;
+    celda.classList.add('hover');
+    const i = Number(celda.dataset.i), j = Number(celda.dataset.j), n = getN();
+    const infoEl = typeof info === 'function' ? info() : info;
+    const cl = typeof clausulas === 'function' ? clausulas() : clausulas;
+    if (!infoEl) return;
+    if (!cl.length) { infoEl.innerHTML = 'Elige al menos una condición.'; return; }
+    const partes = cl.map(c => { const ok = c[1](n, i, j); return `<code>${esc(c[0])}</code> → <span class="${ok ? 'si' : 'no'}">${ok ? 'sí' : 'no'}</span>`; });
+    const hay = cl.some(c => c[1](n, i, j));
+    infoEl.innerHTML = `Fila i = ${i}, columna j = ${j}: ${partes.join(' · ')} ⇒ <span class="res">${hay ? 'asterisco' : 'espacio'}</span>`;
+  };
+  wrap.addEventListener('mouseover', e => mostrar(e.target.closest('.c')));
+  wrap.addEventListener('click', e => mostrar(e.target.closest('.c')));
+}
+
+/* ================= Portada ================= */
+function portada() {
+  const el = $('#hero-fig');
+  const filas = filasDe('mariposa', 4);
+  pintarFigura(el, filas, {
+    extraCols: 7,
+    nota: f => `${f.vals[0]} ast · ${f.vals[1]} esp · ${f.vals[2]} ast`,
+  });
+  if (reducido) return;
+  const celdas = $$('.c', el);
+  let k = 0, pausa = 0, visible = true;
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(el);
+  setInterval(() => {
+    if (!visible) return;
+    if (pausa > 0) { pausa--; return; }
+    celdas.forEach(c => c.classList.remove('cur'));
+    if (k >= celdas.length) { k = 0; pausa = 14; return; }
+    celdas[k++].classList.add('cur');
+  }, 90);
+}
+
+/* ================= Paso a paso ================= */
+function grabadora(n) {
+  const filas = [[]], lista = [];
+  return {
+    lista,
+    escribir(ch) { filas[filas.length - 1].push(ch); },
+    salto() { filas.push([]); },
+    ir(linea, vars, msg) { lista.push({ linea, vars: Object.assign({ n }, vars), msg, filas: filas.map(f => f.join('')) }); },
+  };
+}
+const PROGRAMAS = {
+  triangulo: {
+    lineas: ['for i in range(1, n + 1):', '    for j in range(i):', '        print("*", end="")', '    print()'],
+    pasos(n) {
+      const G = grabadora(n);
+      G.ir(-1, {}, `El programa empieza con n = ${n}. Presiona Siguiente.`);
+      for (let i = 1; i <= n; i++) {
+        G.ir(0, { i }, `Empieza la fila ${i}: el for de afuera le da a i el valor ${i}.`);
+        for (let j = 0; j < i; j++) {
+          G.ir(1, { i, j }, `for de adentro: range(${i}) da ${i} vuelta${i > 1 ? 's' : ''}. Esta es la vuelta ${j + 1} y j vale ${j}.`);
+          G.escribir('*');
+          G.ir(2, { i, j }, 'Se escribe un asterisco. Con end="" el cursor se queda en la misma línea.');
+        }
+        G.ir(1, { i }, `range(${i}) ya no tiene más números: termina el for de adentro.`);
+        G.salto();
+        G.ir(3, { i }, `print() salta a la línea siguiente. La fila ${i} quedó con ${i} asterisco${i > 1 ? 's' : ''}.`);
+      }
+      G.ir(0, { i: n }, `range(1, ${n + 1}) ya no tiene más números: el programa termina. Listo el triángulo.`);
+      return G.lista;
+    },
+  },
+  piramide: {
+    lineas: ['for i in range(1, n + 1):', '    for j in range(n - i):', '        print(" ", end="")', '    for j in range(2 * i - 1):', '        print("*", end="")', '    print()'],
+    pasos(n) {
+      const G = grabadora(n);
+      G.ir(-1, {}, `El programa empieza con n = ${n}. Presiona Siguiente.`);
+      for (let i = 1; i <= n; i++) {
+        const e = n - i, a = 2 * i - 1;
+        G.ir(0, { i }, `Empieza la fila ${i}: i vale ${i}.`);
+        if (e === 0) G.ir(1, { i }, `Espacios: n - i = ${n} - ${i} = 0. range(0) no da vueltas, así que esta fila no lleva espacios.`);
+        for (let j = 0; j < e; j++) {
+          G.ir(1, { i, j }, `Espacios: n - i = ${n} - ${i} = ${e}. Vuelta ${j + 1} de ${e}, j vale ${j}.`);
+          G.escribir(' ');
+          G.ir(2, { i, j }, 'Se escribe un espacio (lo ves como ·) y el cursor sigue en la misma línea.');
+        }
+        for (let j = 0; j < a; j++) {
+          G.ir(3, { i, j }, `Asteriscos: 2 * i - 1 = 2 * ${i} - 1 = ${a}. Vuelta ${j + 1} de ${a}, j vale ${j}.`);
+          G.escribir('*');
+          G.ir(4, { i, j }, 'Se escribe un asterisco.');
+        }
+        G.salto();
+        G.ir(5, { i }, `print() salta de línea. La fila ${i} quedó con ${e} espacio${e === 1 ? '' : 's'} y ${a} asterisco${a === 1 ? '' : 's'}.`);
+      }
+      G.ir(0, { i: n }, `range(1, ${n + 1}) ya no tiene más números: el programa termina. Lista la pirámide.`);
+      return G.lista;
+    },
+  },
+};
+function pasoAPaso() {
+  const selP = $('#tr-prog'), selN = $('#tr-n');
+  let pasos = [], k = 0, timer = null, prog;
+  function preparar() {
+    prog = PROGRAMAS[selP.value];
+    pasos = prog.pasos(Number(selN.value));
+    k = 0;
+    $('#tr-code').innerHTML = prog.lineas.map((l, q) => `<span class="ln" data-l="${q}"><span class="num">${q + 1}</span>${resaltar(l)}</span>`).join('');
+    parar();
+    mostrar();
+  }
+  function mostrar() {
+    const p = pasos[k], prev = pasos[k - 1];
+    $$('#tr-code .ln').forEach(l => l.classList.toggle('activa', Number(l.dataset.l) === p.linea));
+    $('#tr-vars').innerHTML = ['n', 'i', 'j'].map(v => {
+      const val = p.vars[v];
+      const cambio = prev && val !== undefined && prev.vars[v] !== val;
+      return `<span class="var${cambio ? ' cambio' : ''}">${v} = <b>${val === undefined ? '—' : val}</b></span>`;
+    }).join('');
+    $('#tr-msg').textContent = p.msg;
+    const ancho = Math.max(...pasos[pasos.length - 1].filas.map(f => f.length)) + 1;
+    pintarFigura($('#tr-out'), filasDeTexto(p.filas), { etiquetas: false, cursor: k < pasos.length - 1, colsFijas: Math.max(ancho, 6) });
+    $('#tr-cuenta').textContent = `Paso ${k + 1} de ${pasos.length}`;
+    $('#tr-ant').disabled = k === 0;
+    $('#tr-sig').disabled = k === pasos.length - 1;
+    if (k === pasos.length - 1) parar();
+  }
+  function parar() { clearInterval(timer); timer = null; $('#tr-play').textContent = 'Reproducir'; }
+  $('#tr-sig').addEventListener('click', () => { if (k < pasos.length - 1) { k++; mostrar(); } });
+  $('#tr-ant').addEventListener('click', () => { if (k > 0) { k--; mostrar(); } });
+  $('#tr-ini').addEventListener('click', () => { parar(); k = 0; mostrar(); });
+  $('#tr-play').addEventListener('click', () => {
+    if (timer) { parar(); return; }
+    if (k === pasos.length - 1) k = 0;
+    $('#tr-play').textContent = 'Pausa';
+    timer = setInterval(() => { if (k < pasos.length - 1) { k++; mostrar(); } else parar(); }, 450);
+  });
+  $('#tracer').addEventListener('keydown', e => {
+    if (e.target.tagName === 'SELECT') return;
+    if (e.key === 'ArrowRight') { $('#tr-sig').click(); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { $('#tr-ant').click(); e.preventDefault(); }
+  });
+  selP.addEventListener('change', preparar);
+  selN.addEventListener('change', preparar);
+  preparar();
+}
+
+/* ================= Detector de fórmulas ================= */
+function detector() {
+  const inNums = $('#det-nums'), inN = $('#det-n'), res = $('#det-res');
+  function calcular() {
+    const nums = inNums.value.split(/[\s,;]+/).filter(Boolean).map(Number);
+    const n = Number(inN.value);
+    res.classList.remove('error');
+    if (nums.length < 2 || nums.some(x => !Number.isInteger(x))) {
+      res.classList.add('error');
+      res.innerHTML = 'Escribe al menos dos números enteros separados por espacios, por ejemplo <code>3 2 1 0</code>.';
+      return;
+    }
+    const a = nums[1] - nums[0];
+    const fallo = nums.findIndex((x, q) => q > 0 && x - nums[q - 1] !== a);
+    if (fallo > 0) {
+      res.classList.add('error');
+      res.innerHTML = `Los números no cambian siempre igual (de la fila ${fallo} a la ${fallo + 1} cambia ${nums[fallo] - nums[fallo - 1]}, no ${a}). Revisa el conteo, o parte la figura en dos (arriba y abajo) y busca una fórmula para cada parte.`;
+      return;
+    }
+    const b = nums[0] - a;
+    let formula = fmtLin(a, b, 'i');
+    let conN = '';
+    if (Number.isInteger(n) && n > 0) {
+      if (a < 0) {
+        const m = -a, c = b - m * n;
+        const base = m === 1 ? 'n - i' : `${m} * (n - i)`;
+        conN = c === 0 ? base : (c > 0 ? `${base} + ${c}` : `${base} - ${-c}`);
+      } else if (a === 0 && b === n) conN = 'n';
+    }
+    const cambio = a === 0 ? 'no cambia' : `${a > 0 ? 'sube' : 'baja'} de ${Math.abs(a)} en ${Math.abs(a)}`;
+    const usa = conN && conN !== formula;
+    const comprobar = nums.map((x, q) => `fila ${q + 1}: ${x}`).slice(0, 4).join(' · ');
+    res.innerHTML = `<div>La columna ${cambio} en cada fila. Fórmula:</div>
+      <div class="grande">${esc(usa ? conN : formula)}</div>
+      ${usa ? `<div>Es lo mismo que <code>${esc(formula)}</code> cuando n = ${n}, pero escrita con n sirve para cualquier tamaño.</div>` : ''}
+      <div style="color:var(--muted);font-size:.9rem;margin-top:.3rem">Con i = 1, 2, 3… da ${esc(comprobar)}${nums.length > 4 ? '…' : ''}</div>`;
+  }
+  inNums.addEventListener('input', calcular);
+  inN.addEventListener('input', calcular);
+  calcular();
+}
+
+/* ================= Método 2: condiciones ================= */
+const CONDS = [
+  ['i == 1', 'primera fila', (n, i, j) => i === 1],
+  ['i == n', 'última fila', (n, i, j) => i === n],
+  ['j == 1', 'primera columna', (n, i, j) => j === 1],
+  ['j == n', 'última columna', (n, i, j) => j === n],
+  ['j == i', 'diagonal \\', (n, i, j) => j === i],
+  ['j == n - i + 1', 'diagonal /', (n, i, j) => j === n - i + 1],
+  ['i == (n + 1) // 2', 'fila del centro', (n, i, j) => i === Math.floor((n + 1) / 2)],
+  ['j == (n + 1) // 2', 'columna del centro', (n, i, j) => j === Math.floor((n + 1) / 2)],
+  ['(i + j) % 2 == 0', 'ajedrez', (n, i, j) => (i + j) % 2 === 0],
+];
+const COMBOS = [
+  ['X', ['j == i', 'j == n - i + 1']],
+  ['Cuadrado hueco', ['i == 1', 'i == n', 'j == 1', 'j == n']],
+  ['Z', ['i == 1', 'i == n', 'j == n - i + 1']],
+  ['N', ['j == 1', 'j == n', 'j == i']],
+  ['Cruz +', ['i == (n + 1) // 2', 'j == (n + 1) // 2']],
+  ['L', ['j == 1', 'i == n']],
+  ['T', ['i == 1', 'j == (n + 1) // 2']],
+];
+function metodo2() {
+  const chips = $('#cond-chips'), inN = $('#cond-n');
+  let sel = new Set(['j == i', 'j == n - i + 1']);
+  chips.innerHTML = CONDS.map((c, k) => `<button type="button" class="chip" id="cond-${k}" data-c="${esc(c[0])}" aria-pressed="false"><code>${esc(c[0])}</code><small>${esc(c[1])}</small></button>`).join('');
+  $('#cond-combos').insertAdjacentHTML('beforeend', COMBOS.map((c, k) => `<button type="button" class="combo" data-k="${k}">${esc(c[0])}</button>`).join(''));
+  const elegidas = () => CONDS.filter(c => sel.has(c[0])).map(c => [c[0], c[2]]);
+  function pintar() {
+    const n = Number(inN.value);
+    $('#cond-n-val').textContent = n;
+    $$('.chip', chips).forEach(b => b.setAttribute('aria-pressed', sel.has(b.dataset.c) ? 'true' : 'false'));
+    const cl = elegidas();
+    pintarFigura($('#cond-fig'), calcularCasillas(cl, n), { columnasJ: n });
+    const cond = cl.length ? cl.map(c => c[0]).join(' or ') : 'False';
+    pintarCodigo($('#cond-code'), `for i in range(1, n + 1):\n    for j in range(1, n + 1):\n        if ${cond}:\n            print("*", end="")\n        else:\n            print(" ", end="")\n    print()`);
+  }
+  chips.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    sel.has(b.dataset.c) ? sel.delete(b.dataset.c) : sel.add(b.dataset.c);
+    pintar();
+  });
+  $('#cond-combos').addEventListener('click', e => {
+    const b = e.target.closest('.combo'); if (!b) return;
+    sel = new Set(COMBOS[Number(b.dataset.k)][1]);
+    pintar();
+  });
+  inN.addEventListener('input', pintar);
+  activarInfo($('#cond-fig'), $('#cond-info'), elegidas, () => Number(inN.value));
+  pintar();
+}
+
+/* ================= Tarjetas de figuras ================= */
+const NOMBRE_SEG = { ' ': 'espacios', '*': 'asteriscos', h: 'ancho (solo bordes)' };
+function datosFilas(key, filas) {
+  const comp = compilados[key];
+  const varias = comp.partes.length > 1;
+  const cab = comp.segs.map(s => `<th class="num">${NOMBRE_SEG[s.t]}<span class="th-f ${s.c}">${esc(s.expr)}</span></th>`).join('');
+  let cuerpo = '';
+  filas.forEach(f => {
+    cuerpo += `<tr>${varias ? `<td class="parte-tag">${f.corte || f === filas[0] ? f.parte : ''}</td>` : ''}<td class="num">${f.i}</td>${f.vals.map(v => `<td class="num">${Math.max(0, v)}</td>`).join('')}</tr>`;
+  });
+  const rangos = comp.partes.map(p => `${p.nombre ? `<strong>${p.nombre}:</strong> ` : ''}<code>${esc(etiquetaRango(p))}</code>`).join(' &nbsp; ');
+  const extra = comp.segs.filter(s => s.t === 'h' && s.llenoExpr).map(s => `<p class="parte-tag">La fila va llena cuando <code>${esc(s.llenoExpr)}</code>.</p>`).join('');
+  return `<div class="parte-tag">${rangos}</div><div class="tabla-wrap"><table><thead><tr>${varias ? '<th>parte</th>' : ''}<th class="num">i</th>${cab}</tr></thead><tbody>${cuerpo}</tbody></table></div>${extra}`;
+}
+function datosCasillas(def) {
+  const filas = def.casillas.map((c, k) => `<div><span class="punto k${k % 4}"></span><code>${esc(c[0])}</code></div>${k < def.casillas.length - 1 ? '<div class="o">or</div>' : ''}`).join('');
+  return `<p class="parte-tag">Hay asterisco en la casilla (i, j) si se cumple:</p><div class="clausulas">${filas}</div><p class="info">Pasa el cursor o toca una casilla para ver la cuenta.</p>`;
+}
+function figuras() {
+  const inN = $('#fig-n');
+  const tarjetas = $$('.fcard');
+  function pintar() {
+    const n = Number(inN.value);
+    $('#fig-n-val').textContent = n;
+    tarjetas.forEach(t => {
+      const key = t.dataset.fig, def = FIGS[key];
+      const filas = filasDe(key, n);
+      pintarFigura($('.fc-fig', t), filas, { columnasJ: def.casillas ? n : 0 });
+      if (def.casillas) { if (!$('.clausulas', t)) $('.fc-datos', t).innerHTML = datosCasillas(def); }
+      else $('.fc-datos', t).innerHTML = datosFilas(key, filas);
+    });
+  }
+  tarjetas.forEach(t => {
+    const def = FIGS[t.dataset.fig];
+    if (def.casillas) { $('.fc-datos', t).innerHTML = datosCasillas(def); activarInfo($('.fc-fig', t), () => $('.info', t), def.casillas, () => Number(inN.value)); }
+  });
+  inN.addEventListener('input', pintar);
+  $('#fig-menos').addEventListener('click', () => { inN.value = Math.max(1, Number(inN.value) - 1); pintar(); });
+  $('#fig-mas').addEventListener('click', () => { inN.value = Math.min(12, Number(inN.value) + 1); pintar(); });
+  $('#ver-esp').addEventListener('change', e => $('#hoja').classList.toggle('ver-esp', e.target.checked));
+  pintar();
+}
+
+/* ================= Laboratorio ================= */
+const PRESETS = {
+  piramide: { nombre: 'Pirámide', partes: [['1', 'n']], segs: PIR },
+  rombo: { nombre: 'Rombo', partes: DOS_ROMBO, segs: PIR },
+  reloj: { nombre: 'Reloj de arena', partes: [['n', '1'], ['2', 'n']], segs: PIR },
+  mariposa: { nombre: 'Mariposa', partes: DOS_ROMBO, segs: [['*', 'i'], [' ', '2 * (n - i)'], ['*', 'i']] },
+  flecha: { nombre: 'Flecha', partes: DOS_ROMBO, segs: [['*', 'i']] },
+  vacio: { nombre: 'Empezar de cero', partes: [['1', 'n']], segs: [['*', 'i']] },
+};
+function laboratorio() {
+  const inN = $('#lab-n'), segsEl = $('#lab-segs');
+  let segs = [];
+  $('#lab-presets').insertAdjacentHTML('beforeend', Object.entries(PRESETS).map(([k, p]) => `<button type="button" class="combo" data-p="${k}">${esc(p.nombre)}</button>`).join(''));
+  function pintarSegs() {
+    segsEl.innerHTML = segs.map((s, k) => `<div class="seg-fila" data-k="${k}">
+      <span class="num-col">${k + 1}.</span>
+      <select id="lab-t-${k}" aria-label="Tipo de la columna ${k + 1}"><option value=" "${s[0] === ' ' ? ' selected' : ''}>espacios</option><option value="*"${s[0] === '*' ? ' selected' : ''}>asteriscos</option></select>
+      <input type="text" id="lab-e-${k}" value="${esc(s[1])}" aria-label="Fórmula de la columna ${k + 1}" autocomplete="off" spellcheck="false">
+      <button type="button" class="quitar" aria-label="Quitar la columna ${k + 1}"${segs.length === 1 ? ' disabled' : ''}>×</button></div>`).join('');
+  }
+  function cargar(p) {
+    $('#lab-d1').value = p.partes[0][0]; $('#lab-h1').value = p.partes[0][1];
+    const dos = p.partes.length > 1;
+    $('#lab-dos').checked = dos;
+    $('#lab-d2').value = dos ? p.partes[1][0] : 'n - 1';
+    $('#lab-h2').value = dos ? p.partes[1][1] : '1';
+    segs = p.segs.map(s => [s[0], s[1]]);
+    pintarSegs();
+    calcular();
+  }
+  function calcular() {
+    const n = Number(inN.value);
+    $('#lab-n-val').textContent = n;
+    const dos = $('#lab-dos').checked;
+    $('#lab-p2').hidden = !dos;
+    segs = $$('.seg-fila', segsEl).map(f => [$('select', f).value, $('input', f).value]);
+    const avisos = [];
+    let comp = null;
+    try {
+      const partes = [[$('#lab-d1').value, $('#lab-h1').value, dos ? 'arriba' : '']];
+      if (dos) partes.push([$('#lab-d2').value, $('#lab-h2').value, 'abajo']);
+      partes.forEach((p, k) => { try { compilarParte(p[0], p[1]); } catch (e) { throw new Error(`Parte ${k + 1} (rango de i): ${e.message}`); } });
+      segs.forEach((s, k) => { try { parsear(s[1], ['i', 'n']); } catch (e) { throw new Error(`Columna ${k + 1}: ${e.message}`); } });
+      comp = compilarFilas(partes, segs);
+    } catch (e) { avisos.push(['', e.message]); }
+    let filas = [];
+    if (comp) {
+      try {
+        filas = calcularFilas(comp, n);
+        const neg = filas.find(f => f.vals.some(v => v < 0));
+        if (neg) { const q = neg.vals.findIndex(v => v < 0); avisos.push(['suave', `En la fila i = ${neg.i}, la columna ${q + 1} da ${neg.vals[q]}. Python lo toma como 0 (no imprime nada), pero casi siempre significa que la fórmula está mal.`]); }
+        if (!filas.length) avisos.push(['suave', 'Con este rango, i no toma ningún valor y no se dibuja nada. Revisa desde y hasta.']);
+        if (filas.some(f => f.vals.some(v => v > 60))) avisos.push(['suave', 'Alguna fila es muy larga; puede que la fórmula crezca demasiado.']);
+      } catch (e) { avisos.push(['', e.message]); filas = []; }
+    }
+    $('#lab-avisos').innerHTML = avisos.map(a => `<div class="aviso ${a[0]}">${esc(a[1])}</div>`).join('');
+    if (filas.length) pintarFigura($('#lab-fig'), filas);
+    else $('#lab-fig').innerHTML = '<p class="fig-vacia">Aquí aparecerá la figura.</p>';
+    if (comp && !avisos.some(a => a[0] === '')) {
+      const f1 = ['n = int(input("Tamaño de la figura (n): "))', ''];
+      const f2 = ['n = int(input("Tamaño de la figura (n): "))', ''];
+      comp.partes.forEach((p, k) => {
+        if (comp.partes.length > 1) { const c = `# Parte ${k ? 'de abajo' : 'de arriba'}`; f1.push(c); f2.push(c); }
+        f1.push(`for i in ${codigoRange(p)}:`);
+        f2.push(`for i in ${codigoRange(p)}:`);
+        comp.segs.forEach(s => { f1.push(`    for j in range(${s.expr}):`, `        print("${s.t}", end="")`); });
+        f1.push('    print()');
+        f2.push('    print(' + comp.segs.map(s => `"${s.t}" * ${esAtomo(s.nodo) ? s.expr : `(${s.expr})`}`).join(' + ') + ')');
+      });
+      pintarCodigo($('#lab-c1'), f1.join('\n'));
+      pintarCodigo($('#lab-c2'), f2.join('\n'));
+    } else { pintarCodigo($('#lab-c1'), '# Corrige la fórmula para ver el código'); pintarCodigo($('#lab-c2'), '# Corrige la fórmula para ver el código'); }
+  }
+  $('#lab-presets').addEventListener('click', e => { const b = e.target.closest('.combo'); if (b) cargar(PRESETS[b.dataset.p]); });
+  $('#lab').addEventListener('input', calcular);
+  $('#lab').addEventListener('change', calcular);
+  segsEl.addEventListener('click', e => {
+    const b = e.target.closest('.quitar'); if (!b) return;
+    const k = Number(b.closest('.seg-fila').dataset.k);
+    segs = $$('.seg-fila', segsEl).map(f => [$('select', f).value, $('input', f).value]);
+    segs.splice(k, 1); pintarSegs(); calcular();
+  });
+  $('#lab-add').addEventListener('click', () => {
+    segs = $$('.seg-fila', segsEl).map(f => [$('select', f).value, $('input', f).value]);
+    segs.push(['*', 'i']); pintarSegs(); calcular();
+    $(`#lab-e-${segs.length - 1}`).focus();
+  });
+  $$('[data-lab]').forEach(b => b.addEventListener('click', () => {
+    const def = FIGS[b.dataset.lab];
+    cargar({ partes: def.partes, segs: def.segs });
+    inN.value = $('#fig-n').value; calcular();
+    $('#laboratorio').scrollIntoView({ behavior: reducido ? 'auto' : 'smooth' });
+  }));
+  cargar(PRESETS.rombo);
+}
+
+/* ================= Ejercicios, salidas, pestañas, copiar ================= */
+function ejercicios() {
+  $$('[data-ej]').forEach(t => {
+    const key = t.dataset.ej, n = Number(t.dataset.n), def = FIGS[key];
+    pintarFigura($('.ej-fig', t), filasDe(key, n), { columnasJ: def.casillas ? n : 0 });
+  });
+  $$('.salida').forEach(el => pintarFigura(el, filasDeTexto(JSON.parse(el.dataset.lineas)), { etiquetas: false }));
+}
+function pestanas() {
+  document.addEventListener('click', e => {
+    const tab = e.target.closest('[role="tab"]'); if (!tab) return;
+    const caja = tab.closest('.tabs');
+    const tabs = $$('[role="tab"]', caja).filter(t => t.closest('.tabs') === caja);
+    const paneles = $$(':scope > pre.code', caja);
+    const k = tabs.indexOf(tab);
+    tabs.forEach((t, q) => t.setAttribute('aria-selected', q === k ? 'true' : 'false'));
+    paneles.forEach((p, q) => { p.hidden = q !== k; });
+  });
+}
+function copiar() {
+  $$('pre.code').forEach(pre => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'copiar'; b.textContent = 'Copiar';
+    b.addEventListener('click', async () => {
+      const code = $('code', pre);
+      const texto = code.dataset.src || code.textContent;
+      try { await navigator.clipboard.writeText(texto); b.textContent = 'Copiado'; }
+      catch { const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Seleccionado'; }
+      setTimeout(() => { b.textContent = 'Copiar'; }, 1500);
+    });
+    pre.appendChild(b);
+  });
+}
+
+$$('code.py').forEach(c => { if (!c.id) pintarCodigo(c, c.textContent); });
+portada(); pasoAPaso(); detector(); metodo2(); figuras(); laboratorio(); ejercicios(); pestanas(); copiar();
+})();
+</script>
+<script>
+/* ================= 9. Actividad 13: presentación ================= */
+(() => {
+'use strict';
+const D = {"orden":["m","triangulo","rombo","cuadrado","estrella"],"figs":{"m":{"num":1,"nombre":"Letra M","archivo":"ej1_letra_m.py","metodo":2,"forma":"cuadrado","ns":[3,5,7,9,11,13,15],"n0":7,"vars":["centro"],"titAnalizar":"La M son cuatro líneas","intro":"Dos palos verticales y dos diagonales que se juntan en el centro. Ve sumando piezas a la condición con los pasos.","titCodigo":"El programa de la M","notaCodigo":"El <code>while<\/code> del principio vuelve a pedir n si escribes un número par. Sin una columna central exacta, la M sale torcida.","piezas":{"palos":{"code":"j == 1 or j == n","k":"k1","nombre":"los dos palos"},"d1":{"code":"j == i","k":"k0","nombre":"diagonal \\"},"d2":{"code":"j == n - i + 1","k":"k2","nombre":"diagonal /"},"d1a":{"code":"i <= centro and j == i","k":"k0","nombre":"diagonal \\ solo arriba"},"d2a":{"code":"i <= centro and j == n - i + 1","k":"k2","nombre":"diagonal / solo arriba"}},"pasos":[{"tit":"Los dos palos","piezas":["palos"],"cond":"j == 1 or j == n","txt":"Las columnas 1 y n llevan <code>*<\/code> en todas las filas. En Python eso es <code>j == 1 or j == n<\/code>. Pasa el ratón por una casilla, o tócala, para ver la cuenta."},{"tit":"Las diagonales","piezas":["palos","d1","d2"],"cond":"j == 1 or j == n or j == i or j == n - i + 1","txt":"Entre los palos bajan dos diagonales. En la <code>\\<\/code> la columna es igual a la fila: <code>j == i<\/code>. En la <code>/<\/code>, cuando la fila sube 1 la columna baja 1: <code>j == n - i + 1<\/code>. Así cruzan todo el cuadrado, pero la M solo las tiene arriba."},{"tit":"Solo arriba","piezas":["palos","d1a","d2a"],"final":true,"cond":"j == 1 or j == n or (i <= centro and (j == i or j == n - i + 1))","mostrar":"palos = j == 1 or j == n\nv = i <= centro and (j == i or j == n - i + 1)\nif palos or v:","txt":"Las diagonales se juntan en la fila del centro. <code>centro = (n + 1) // 2<\/code>, que con n = {n} vale {centro}. Para que no sigan bajando, les pedimos también <code>i &lt;= centro<\/code>. Esta ya es la M."},{"tit":"Sin paréntesis","piezas":["palos","d1a","d2"],"etq":"!","error":true,"cond":"j == 1 or j == n or i <= centro and j == i or j == n - i + 1","mostrar":"palos = j == 1 or j == n\nv = i <= centro and j == i or j == n - i + 1    # mal\nif palos or v:","txt":"Python hace el <code>and<\/code> antes que el <code>or<\/code>. Si quitas los paréntesis, <code>i &lt;= centro<\/code> solo frena la diagonal <code>\\<\/code>, y la <code>/<\/code> baja hasta la esquina. Por eso los paréntesis son obligatorios."}],"pdf":{"tipo":"ok","txt":"Con n = 7 la consola da exactamente el dibujo del ejemplo del PDF."},"corto":"M","codigo":"n = int(input(\"Tamaño impar de la M (n): \"))\nwhile n % 2 == 0:\n    n = int(input(\"Tiene que ser impar. Tamaño (n): \"))\n\ncentro = (n + 1) // 2                  # con n = 7, centro = 4\n\nfor i in range(1, n + 1):              # i = fila\n    for j in range(1, n + 1):          # j = columna\n        palos = j == 1 or j == n\n        v = i <= centro and (j == i or j == n - i + 1)\n        if palos or v:\n            print(\"*\", end=\"\")\n        else:\n            print(\" \", end=\"\")\n    print()\n","salidas":{"3":{"prompt":"Tamaño impar de la M (n): ","lineas":["* *","***","* *"]},"5":{"prompt":"Tamaño impar de la M (n): ","lineas":["*   *","** **","* * *","*   *","*   *"]},"7":{"prompt":"Tamaño impar de la M (n): ","lineas":["*     *","**   **","* * * *","*  *  *","*     *","*     *","*     *"]},"9":{"prompt":"Tamaño impar de la M (n): ","lineas":["*       *","**     **","* *   * *","*  * *  *","*   *   *","*       *","*       *","*       *","*       *"]},"11":{"prompt":"Tamaño impar de la M (n): ","lineas":["*         *","**       **","* *     * *","*  *   *  *","*   * *   *","*    *    *","*         *","*         *","*         *","*         *","*         *"]},"13":{"prompt":"Tamaño impar de la M (n): ","lineas":["*           *","**         **","* *       * *","*  *     *  *","*   *   *   *","*    * *    *","*     *     *","*           *","*           *","*           *","*           *","*           *","*           *"]},"15":{"prompt":"Tamaño impar de la M (n): ","lineas":["*             *","**           **","* *         * *","*  *       *  *","*   *     *   *","*    *   *    *","*     * *     *","*      *      *","*             *","*             *","*             *","*             *","*             *","*             *","*             *"]}},"grids":{"3":["101/101/101","305/161/503","305/161/101","305/161/501"],"5":["10001/10001/10001/10001/10001","30005/12041/10601/14021/50003","30005/12041/10601/10001/10001","30005/12041/10601/14001/50001"],"7":["1000001/1000001/1000001/1000001/1000001/1000001/1000001","3000005/1200041/1020401/1006001/1040201/1400021/5000003","3000005/1200041/1020401/1006001/1000001/1000001/1000001","3000005/1200041/1020401/1006001/1040001/1400001/5000001"],"9":["100000001/100000001/100000001/100000001/100000001/100000001/100000001/100000001/100000001","300000005/120000041/102000401/100204001/100060001/100402001/104000201/140000021/500000003","300000005/120000041/102000401/100204001/100060001/100000001/100000001/100000001/100000001","300000005/120000041/102000401/100204001/100060001/100400001/104000001/140000001/500000001"],"11":["10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001","30000000005/12000000041/10200000401/10020004001/10002040001/10000600001/10004020001/10040002001/10400000201/14000000021/50000000003","30000000005/12000000041/10200000401/10020004001/10002040001/10000600001/10000000001/10000000001/10000000001/10000000001/10000000001","30000000005/12000000041/10200000401/10020004001/10002040001/10000600001/10004000001/10040000001/10400000001/14000000001/50000000001"],"13":["1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001","3000000000005/1200000000041/1020000000401/1002000004001/1000200040001/1000020400001/1000006000001/1000040200001/1000400020001/1004000002001/1040000000201/1400000000021/5000000000003","3000000000005/1200000000041/1020000000401/1002000004001/1000200040001/1000020400001/1000006000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001","3000000000005/1200000000041/1020000000401/1002000004001/1000200040001/1000020400001/1000006000001/1000040000001/1000400000001/1004000000001/1040000000001/1400000000001/5000000000001"],"15":["100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001","300000000000005/120000000000041/102000000000401/100200000004001/100020000040001/100002000400001/100000204000001/100000060000001/100000402000001/100004000200001/100040000020001/100400000002001/104000000000201/140000000000021/500000000000003","300000000000005/120000000000041/102000000000401/100200000004001/100020000040001/100002000400001/100000204000001/100000060000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001","300000000000005/120000000000041/102000000000401/100200000004001/100020000040001/100002000400001/100000204000001/100000060000001/100000400000001/100004000000001/100040000000001/100400000000001/104000000000001/140000000000001/500000000000001"]}},"triangulo":{"num":2,"nombre":"Triángulo invertido","archivo":"ej2_triangulo_alternado.py","metodo":2,"forma":"triangulo","ns":[1,2,3,4,5,6,7,8,9,10,11,12],"n0":6,"vars":[],"titAnalizar":"Filas que se acortan","intro":"Aquí la cuadrícula no es cuadrada: cada fila tiene una casilla menos que la anterior. Eso cambia el <code>for j<\/code>.","titCodigo":"El programa del triángulo","notaCodigo":"La única diferencia con la plantilla es <code>ancho<\/code>. Se calcula en cada fila y el <code>for j<\/code> llega hasta él.","piezas":{"todo":{"code":"True","k":"k0","nombre":"todas las casillas"},"arriba":{"code":"i == 1","k":"k1","nombre":"la fila de arriba"},"izq":{"code":"j == 1","k":"k3","nombre":"la primera casilla"},"ult":{"code":"j == ancho","k":"k2","nombre":"la última casilla de la fila"},"rell":{"code":"i % 2 == 0 and j % 2 == 1","k":"k0","nombre":"el relleno alternado"}},"pasos":[{"tit":"La forma","piezas":["todo"],"cond":"True","mostrar":"ancho = n - i + 1\nfor j in range(1, ancho + 1):\n    if True:","txt":"La fila i tiene <code>ancho = n - i + 1<\/code> casillas. Con n = {n}, la fila 1 mide {n} y cada fila mide una menos. Por eso el <code>for j<\/code> va de 1 a <code>ancho<\/code> y no hasta n. Con <code>True<\/code> en el if se llenan todas y ves la forma."},{"tit":"El borde","piezas":["arriba","izq","ult"],"cond":"i == 1 or j == 1 or j == ancho","mostrar":"borde = i == 1 or j == 1 or j == ancho\nif borde:","txt":"El borde tiene tres lados: la fila de arriba (<code>i == 1<\/code>), la primera casilla de cada fila (<code>j == 1<\/code>) y la última (<code>j == ancho<\/code>). Como <code>ancho<\/code> cambia en cada fila, <code>j == ancho<\/code> dibuja el lado inclinado."},{"tit":"El relleno","piezas":["arriba","izq","ult","rell"],"final":true,"cond":"i == 1 or j == 1 or j == ancho or (i % 2 == 0 and j % 2 == 1)","mostrar":"borde = i == 1 or j == 1 or j == ancho\nrelleno = i % 2 == 0 and j % 2 == 1\nif borde or relleno:","txt":"<code>%<\/code> da el resto de dividir. <code>i % 2 == 0<\/code> quiere decir que la fila es par, y <code>j % 2 == 1<\/code>, que la columna es impar. En las filas pares sale un <code>*<\/code> sí y otro no. Las impares quedan vacías por dentro."}],"pdf":{"tipo":"ojo","txt":"En el PDF el dibujo parece un rectángulo, porque la fila 2 es más larga que la 1, y eso no cuadra con «triángulo invertido». Seguí el título. El relleno es el mismo del dibujo: filas pares con <code>* * *<\/code> y filas impares vacías."},"corto":"Triángulo","codigo":"n = int(input(\"Altura del triángulo (n): \"))\n\nfor i in range(1, n + 1):              # i = fila\n    ancho = n - i + 1                  # cuántas casillas tiene esta fila\n    for j in range(1, ancho + 1):      # j = columna, de 1 a ancho\n        borde = i == 1 or j == 1 or j == ancho\n        relleno = i % 2 == 0 and j % 2 == 1\n        if borde or relleno:\n            print(\"*\", end=\"\")\n        else:\n            print(\" \", end=\"\")\n    print()\n","salidas":{"1":{"prompt":"Altura del triángulo (n): ","lineas":["*"]},"2":{"prompt":"Altura del triángulo (n): ","lineas":["**","*"]},"3":{"prompt":"Altura del triángulo (n): ","lineas":["***","**","*"]},"4":{"prompt":"Altura del triángulo (n): ","lineas":["****","* *","**","*"]},"5":{"prompt":"Altura del triángulo (n): ","lineas":["*****","* **","* *","**","*"]},"6":{"prompt":"Altura del triángulo (n): ","lineas":["******","* * *","*  *","* *","**","*"]},"7":{"prompt":"Altura del triángulo (n): ","lineas":["*******","* * **","*   *","* **","* *","**","*"]},"8":{"prompt":"Altura del triángulo (n): ","lineas":["********","* * * *","*    *","* * *","*  *","* *","**","*"]},"9":{"prompt":"Altura del triángulo (n): ","lineas":["*********","* * * **","*     *","* * **","*   *","* **","* *","**","*"]},"10":{"prompt":"Altura del triángulo (n): ","lineas":["**********","* * * * *","*      *","* * * *","*    *","* * *","*  *","* *","**","*"]},"11":{"prompt":"Altura del triángulo (n): ","lineas":["***********","* * * * **","*       *","* * * **","*     *","* * **","*   *","* **","* *","**","*"]},"12":{"prompt":"Altura del triángulo (n): ","lineas":["************","* * * * * *","*        *","* * * * *","*      *","* * * *","*    *","* * *","*  *","* *","**","*"]}},"grids":{"1":["1","7","7"],"2":["11/1","35/6","35/e"],"3":["111/11/1","315/24/6","315/a4/6"],"4":["1111/111/11/1","3115/204/24/6","3115/a0c/24/e"],"5":["11111/1111/111/11/1","31115/2004/204/24/6","31115/a084/204/a4/6"],"6":["111111/11111/1111/111/11/1","311115/20004/2004/204/24/6","311115/a080c/2004/a0c/24/e"],"7":["1111111/111111/11111/1111/111/11/1","3111115/200004/20004/2004/204/24/6","3111115/a08084/20004/a084/204/a4/6"],"8":["11111111/1111111/111111/11111/1111/111/11/1","31111115/2000004/200004/20004/2004/204/24/6","31111115/a08080c/200004/a080c/2004/a0c/24/e"],"9":["111111111/11111111/1111111/111111/11111/1111/111/11/1","311111115/20000004/2000004/200004/20004/2004/204/24/6","311111115/a0808084/2000004/a08084/20004/a084/204/a4/6"],"10":["1111111111/111111111/11111111/1111111/111111/11111/1111/111/11/1","3111111115/200000004/20000004/2000004/200004/20004/2004/204/24/6","3111111115/a0808080c/20000004/a08080c/200004/a080c/2004/a0c/24/e"],"11":["11111111111/1111111111/111111111/11111111/1111111/111111/11111/1111/111/11/1","31111111115/2000000004/200000004/20000004/2000004/200004/20004/2004/204/24/6","31111111115/a080808084/200000004/a0808084/2000004/a08084/20004/a084/204/a4/6"],"12":["111111111111/11111111111/1111111111/111111111/11111111/1111111/111111/11111/1111/111/11/1","311111111115/20000000004/2000000004/200000004/20000004/2000004/200004/20004/2004/204/24/6","311111111115/a080808080c/2000000004/a0808080c/20000004/a08080c/200004/a080c/2004/a0c/24/e"]}},"rombo":{"num":3,"nombre":"Rombo sólido","archivo":"ej3_rombo_solido.py","metodo":1,"forma":"rombo","ns":[2,3,4,5,6,7,8,9],"n0":4,"vars":[],"titAnalizar":"Contar espacios y asteriscos","intro":"El rombo es macizo, así que no hace falta mirar casilla por casilla. Basta con contar cuántos espacios y cuántos asteriscos lleva cada fila.","titCodigo":"El programa del rombo","notaCodigo":"Aquí no hay <code>for j<\/code>. Cada fila se imprime de una vez, multiplicando textos.","pasos":[{"tit":"Mitad de arriba","mostrar":"for i in range(1, n + 1):\n    print(\" \" * (n - i) + \"*\" * (2 * i - 1))","txt":"La mitad de arriba es una pirámide: <code>i<\/code> va de 1 a n. En la tabla, los espacios bajan de 1 en 1, así que valen <code>n - i<\/code>. Los asteriscos suben de 2 en 2, así que valen <code>2*i - 1<\/code>. En Python, <code>\" \" * 3<\/code> son tres espacios seguidos."},{"tit":"Mitad de abajo","final":true,"mostrar":"for i in range(1, n + 1):\n    print(\" \" * (n - i) + \"*\" * (2 * i - 1))\n\nfor i in range(n - 1, 0, -1):\n    print(\" \" * (n - i) + \"*\" * (2 * i - 1))","txt":"La mitad de abajo es la misma pirámide al revés. <code>range(n - 1, 0, -1)<\/code> hace que i baje de {n1} a 1, y las fórmulas no cambian. Empieza en n - 1 para no repetir la fila del medio, y así el rombo mide 2n - 1 = {alto} filas."}],"pdf":{"tipo":"ojo","txt":"En el PDF la fila del medio tiene 6 <code>*<\/code>. Tienen que ser 7 (2·4 − 1): con un número par de asteriscos el rombo no queda centrado."},"corto":"Rombo","codigo":"n = int(input(\"Tamaño del rombo (n): \"))\n\nfor i in range(1, n + 1):              # mitad de arriba\n    print(\" \" * (n - i) + \"*\" * (2 * i - 1))\n\nfor i in range(n - 1, 0, -1):          # mitad de abajo\n    print(\" \" * (n - i) + \"*\" * (2 * i - 1))\n","salidas":{"2":{"prompt":"Tamaño del rombo (n): ","lineas":[" *","***"," *"]},"3":{"prompt":"Tamaño del rombo (n): ","lineas":["  *"," ***","*****"," ***","  *"]},"4":{"prompt":"Tamaño del rombo (n): ","lineas":["   *","  ***"," *****","*******"," *****","  ***","   *"]},"5":{"prompt":"Tamaño del rombo (n): ","lineas":["    *","   ***","  *****"," *******","*********"," *******","  *****","   ***","    *"]},"6":{"prompt":"Tamaño del rombo (n): ","lineas":["     *","    ***","   *****","  *******"," *********","***********"," *********","  *******","   *****","    ***","     *"]},"7":{"prompt":"Tamaño del rombo (n): ","lineas":["      *","     ***","    *****","   *******","  *********"," ***********","*************"," ***********","  *********","   *******","    *****","     ***","      *"]},"8":{"prompt":"Tamaño del rombo (n): ","lineas":["       *","      ***","     *****","    *******","   *********","  ***********"," *************","***************"," *************","  ***********","   *********","    *******","     *****","      ***","       *"]},"9":{"prompt":"Tamaño del rombo (n): ","lineas":["        *","       ***","      *****","     *******","    *********","   ***********","  *************"," ***************","*****************"," ***************","  *************","   ***********","    *********","     *******","      *****","       ***","        *"]}}},"cuadrado":{"num":4,"nombre":"Cuadrado con diagonales","archivo":"ej4_cuadrado_diagonales.py","metodo":2,"forma":"cuadrado","ns":[5,6,7,8,9,10,11,12,13,14,15],"n0":9,"vars":["a","b"],"titAnalizar":"Tres piezas unidas con or","intro":"El borde, las dos diagonales y un cuadro más pequeño en el centro. Cada pieza es una condición.","titCodigo":"El programa del cuadrado","notaCodigo":"<code>a<\/code> y <code>b<\/code> se calculan una sola vez, antes de los bucles. Cada pieza se guarda en una variable para que el <code>if<\/code> se lea fácil.","piezas":{"borde":{"code":"i == 1 or i == n or j == 1 or j == n","k":"k1","nombre":"el borde"},"diag":{"code":"j == i or j == n - i + 1","k":"k0","nombre":"las dos diagonales"},"intf":{"code":"(i == a or i == b) and a <= j <= b","k":"k2","nombre":"cuadro interno, arriba y abajo"},"intc":{"code":"(j == a or j == b) and a <= i <= b","k":"k3","nombre":"cuadro interno, a los lados"},"diagh":{"code":"(j == i or j == n - i + 1) and not (a < i < b and a < j < b)","k":"k0","nombre":"diagonales que no entran al cuadro"}},"pasos":[{"tit":"El borde","piezas":["borde"],"cond":"i == 1 or i == n or j == 1 or j == n","mostrar":"borde = i == 1 or i == n or j == 1 or j == n\nif borde:","txt":"Primera y última fila, primera y última columna: <code>i == 1 or i == n or j == 1 or j == n<\/code>. Es el cuadrado hueco de siempre."},{"tit":"Las diagonales","piezas":["borde","diag"],"cond":"i == 1 or i == n or j == 1 or j == n or j == i or j == n - i + 1","mostrar":"borde = i == 1 or i == n or j == 1 or j == n\ndiagonal = j == i or j == n - i + 1\nif borde or diagonal:","txt":"Se suman las dos diagonales, igual que en una X: <code>j == i<\/code> para la <code>\\<\/code> y <code>j == n - i + 1<\/code> para la <code>/<\/code>."},{"tit":"El cuadro interno","piezas":["borde","diag","intf","intc"],"final":true,"cond":"i == 1 or i == n or j == 1 or j == n or j == i or j == n - i + 1 or ((i == a or i == b) and a <= j <= b) or ((j == a or j == b) and a <= i <= b)","mostrar":"borde = i == 1 or i == n or j == 1 or j == n\ndiagonal = j == i or j == n - i + 1\ninterno = ((i == a or i == b) and a <= j <= b) or ((j == a or j == b) and a <= i <= b)\nif borde or diagonal or interno:","txt":"El cuadro de dentro va de la casilla <code>a<\/code> a la <code>b<\/code>. Con n = {n}, <code>a = n // 4 + 1 = {a}<\/code> y <code>b = n - n // 4 = {b}<\/code>. Sus lados de arriba y abajo son las filas a y b, pero solo entre las columnas a y b: <code>a &lt;= j &lt;= b<\/code> se lee «j está entre a y b». Los lados de los costados son lo mismo, cambiando i por j."},{"tit":"Vacío por dentro","piezas":["borde","diagh","intf","intc"],"etq":"V","cond":"i == 1 or i == n or j == 1 or j == n or ((j == i or j == n - i + 1) and not (a < i < b and a < j < b)) or ((i == a or i == b) and a <= j <= b) or ((j == a or j == b) and a <= i <= b)","mostrar":"borde = i == 1 or i == n or j == 1 or j == n\ndiagonal = (j == i or j == n - i + 1) and not (a < i < b and a < j < b)\ninterno = ((i == a or i == b) and a <= j <= b) or ((j == a or j == b) and a <= i <= b)\nif borde or diagonal or interno:","txt":"Una variante. Si «hueco» quiere decir que dentro del cuadro chico no hay nada, frena las diagonales con <code>not (...)<\/code>. <code>a &lt; i &lt; b and a &lt; j &lt; b<\/code> significa «la casilla está dentro del cuadro chico»."}],"variante":{"tit":"Variante: el cuadro vacío por dentro","txt":"Si tu profe quiere el cuadro chico vacío, cambia la línea de <code>diagonal<\/code> por esta:","code":"diagonal = (j == i or j == n - i + 1) and not (a < i < b and a < j < b)"},"pdf":{"tipo":"ojo","txt":"El dibujo del PDF no enseña ningún cuadro interno y tiene la fila del medio vacía, así que no coincide con su título. Pregúntale a tu profe cuál de las dos versiones quiere."},"corto":"Cuadrado","codigo":"n = int(input(\"Lado del cuadrado (n): \"))\n\na = n // 4 + 1                         # con n = 9: el cuadro de adentro empieza en 3...\nb = n - n // 4                         # ...y termina en 7\n\nfor i in range(1, n + 1):              # i = fila\n    for j in range(1, n + 1):          # j = columna\n        borde = i == 1 or i == n or j == 1 or j == n\n        diagonal = j == i or j == n - i + 1\n        interno = ((i == a or i == b) and a <= j <= b) or ((j == a or j == b) and a <= i <= b)\n        if borde or diagonal or interno:\n            print(\"*\", end=\"\")\n        else:\n            print(\" \", end=\"\")\n    print()\n","salidas":{"5":{"prompt":"Lado del cuadrado (n): ","lineas":["*****","*****","*****","*****","*****"]},"6":{"prompt":"Lado del cuadrado (n): ","lineas":["******","******","******","******","******","******"]},"7":{"prompt":"Lado del cuadrado (n): ","lineas":["*******","*******","*** ***","** * **","*** ***","*******","*******"]},"8":{"prompt":"Lado del cuadrado (n): ","lineas":["********","**    **","* **** *","* **** *","* **** *","* **** *","**    **","********"]},"9":{"prompt":"Lado del cuadrado (n): ","lineas":["*********","**     **","* ***** *","* ** ** *","* * * * *","* ** ** *","* ***** *","**     **","*********"]},"10":{"prompt":"Lado del cuadrado (n): ","lineas":["**********","**      **","* ****** *","* **  ** *","* * ** * *","* * ** * *","* **  ** *","* ****** *","**      **","**********"]},"11":{"prompt":"Lado del cuadrado (n): ","lineas":["***********","**       **","* ******* *","* **   ** *","* * * * * *","* *  *  * *","* * * * * *","* **   ** *","* ******* *","**       **","***********"]},"12":{"prompt":"Lado del cuadrado (n): ","lineas":["************","**        **","* *      * *","*  ******  *","*  **  **  *","*  * ** *  *","*  * ** *  *","*  **  **  *","*  ******  *","* *      * *","**        **","************"]},"13":{"prompt":"Lado del cuadrado (n): ","lineas":["*************","**         **","* *       * *","*  *******  *","*  **   **  *","*  * * * *  *","*  *  *  *  *","*  * * * *  *","*  **   **  *","*  *******  *","* *       * *","**         **","*************"]},"14":{"prompt":"Lado del cuadrado (n): ","lineas":["**************","**          **","* *        * *","*  ********  *","*  **    **  *","*  * *  * *  *","*  *  **  *  *","*  *  **  *  *","*  * *  * *  *","*  **    **  *","*  ********  *","* *        * *","**          **","**************"]},"15":{"prompt":"Lado del cuadrado (n): ","lineas":["***************","**           **","* *         * *","*  *********  *","*  **     **  *","*  * *   * *  *","*  *  * *  *  *","*  *   *   *  *","*  *  * *  *  *","*  * *   * *  *","*  **     **  *","*  *********  *","* *         * *","**           **","***************"]}},"grids":{"5":["11111/10001/10001/10001/11111","31113/12021/10201/12021/31113","31113/1e4e1/18281/1e4e1/31113","31113/1e4e1/18081/1e4e1/31113"],"6":["111111/100001/100001/100001/100001/111111","311113/120021/102201/102201/120021/311113","311113/1e44e1/182281/182281/1e44e1/311113","311113/1e44e1/180081/180081/1e44e1/311113"],"7":["1111111/1000001/1000001/1000001/1000001/1000001/1111111","3111113/1200021/1020201/1002001/1020201/1200021/3111113","3111113/1e444e1/1820281/1802081/1820281/1e444e1/3111113","3111113/1e444e1/1800081/1800081/1800081/1e444e1/3111113"],"8":["11111111/10000001/10000001/10000001/10000001/10000001/10000001/11111111","31111113/12000021/10200201/10022001/10022001/10200201/12000021/31111113","31111113/12000021/10e44e01/10822801/10822801/10e44e01/12000021/31111113","31111113/12000021/10e44e01/10800801/10800801/10e44e01/12000021/31111113"],"9":["111111111/100000001/100000001/100000001/100000001/100000001/100000001/100000001/111111111","311111113/120000021/102000201/100202001/100020001/100202001/102000201/120000021/311111113","311111113/120000021/10e444e01/108202801/108020801/108202801/10e444e01/120000021/311111113","311111113/120000021/10e444e01/108000801/108000801/108000801/10e444e01/120000021/311111113"],"10":["1111111111/1000000001/1000000001/1000000001/1000000001/1000000001/1000000001/1000000001/1000000001/1111111111","3111111113/1200000021/1020000201/1002002001/1000220001/1000220001/1002002001/1020000201/1200000021/3111111113","3111111113/1200000021/10e4444e01/1082002801/1080220801/1080220801/1082002801/10e4444e01/1200000021/3111111113","3111111113/1200000021/10e4444e01/1080000801/1080000801/1080000801/1080000801/10e4444e01/1200000021/3111111113"],"11":["11111111111/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/10000000001/11111111111","31111111113/12000000021/10200000201/10020002001/10002020001/10000200001/10002020001/10020002001/10200000201/12000000021/31111111113","31111111113/12000000021/10e44444e01/10820002801/10802020801/10800200801/10802020801/10820002801/10e44444e01/12000000021/31111111113","31111111113/12000000021/10e44444e01/10800000801/10800000801/10800000801/10800000801/10800000801/10e44444e01/12000000021/31111111113"],"12":["111111111111/100000000001/100000000001/100000000001/100000000001/100000000001/100000000001/100000000001/100000000001/100000000001/100000000001/111111111111","311111111113/120000000021/102000000201/100200002001/100020020001/100002200001/100002200001/100020020001/100200002001/102000000201/120000000021/311111111113","311111111113/120000000021/102000000201/100e4444e001/100820028001/100802208001/100802208001/100820028001/100e4444e001/102000000201/120000000021/311111111113","311111111113/120000000021/102000000201/100e4444e001/100800008001/100800008001/100800008001/100800008001/100e4444e001/102000000201/120000000021/311111111113"],"13":["1111111111111/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1000000000001/1111111111111","3111111111113/1200000000021/1020000000201/1002000002001/1000200020001/1000020200001/1000002000001/1000020200001/1000200020001/1002000002001/1020000000201/1200000000021/3111111111113","3111111111113/1200000000021/1020000000201/100e44444e001/1008200028001/1008020208001/1008002008001/1008020208001/1008200028001/100e44444e001/1020000000201/1200000000021/3111111111113","3111111111113/1200000000021/1020000000201/100e44444e001/1008000008001/1008000008001/1008000008001/1008000008001/1008000008001/100e44444e001/1020000000201/1200000000021/3111111111113"],"14":["11111111111111/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/10000000000001/11111111111111","31111111111113/12000000000021/10200000000201/10020000002001/10002000020001/10000200200001/10000022000001/10000022000001/10000200200001/10002000020001/10020000002001/10200000000201/12000000000021/31111111111113","31111111111113/12000000000021/10200000000201/100e444444e001/10082000028001/10080200208001/10080022008001/10080022008001/10080200208001/10082000028001/100e444444e001/10200000000201/12000000000021/31111111111113","31111111111113/12000000000021/10200000000201/100e444444e001/10080000008001/10080000008001/10080000008001/10080000008001/10080000008001/10080000008001/100e444444e001/10200000000201/12000000000021/31111111111113"],"15":["111111111111111/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/100000000000001/111111111111111","311111111111113/120000000000021/102000000000201/100200000002001/100020000020001/100002000200001/100000202000001/100000020000001/100000202000001/100002000200001/100020000020001/100200000002001/102000000000201/120000000000021/311111111111113","311111111111113/120000000000021/102000000000201/100e4444444e001/100820000028001/100802000208001/100800202008001/100800020008001/100800202008001/100802000208001/100820000028001/100e4444444e001/102000000000201/120000000000021/311111111111113","311111111111113/120000000000021/102000000000201/100e4444444e001/100800000008001/100800000008001/100800000008001/100800000008001/100800000008001/100800000008001/100800000008001/100e4444444e001/102000000000201/120000000000021/311111111111113"]}},"estrella":{"num":5,"nombre":"Estrella con cruz","archivo":"ej5_estrella.py","metodo":2,"forma":"cuadrado","ns":[3,5,7,9,11,13,15,17],"n0":13,"vars":["centro"],"titAnalizar":"Cuatro líneas por el centro","intro":"Una horizontal, una vertical y las dos diagonales. Es la más fácil del Método 2.","titCodigo":"El programa de la estrella","notaCodigo":"Igual que en la M, el <code>while<\/code> vuelve a pedir n si es par, porque la cruz necesita una fila y una columna centrales.","piezas":{"hor":{"code":"i == centro","k":"k1","nombre":"la línea horizontal"},"ver":{"code":"j == centro","k":"k3","nombre":"la línea vertical"},"d1":{"code":"j == i","k":"k0","nombre":"diagonal \\"},"d2":{"code":"j == n - i + 1","k":"k2","nombre":"diagonal /"}},"pasos":[{"tit":"La horizontal","piezas":["hor"],"cond":"i == centro","mostrar":"cruz = i == centro\nif cruz:","txt":"<code>centro = (n + 1) // 2<\/code>, que con n = {n} vale {centro}. La fila del centro va llena: <code>i == centro<\/code>."},{"tit":"La vertical","piezas":["hor","ver"],"cond":"i == centro or j == centro","mostrar":"cruz = i == centro or j == centro\nif cruz:","txt":"La columna del centro también va llena: <code>j == centro<\/code>. Con las dos ya tienes la cruz."},{"tit":"Las diagonales","piezas":["hor","ver","d1","d2"],"final":true,"cond":"i == centro or j == centro or j == i or j == n - i + 1","mostrar":"cruz = i == centro or j == centro\ndiagonal = j == i or j == n - i + 1\nif cruz or diagonal:","txt":"Faltan las dos diagonales de siempre: <code>j == i<\/code> y <code>j == n - i + 1<\/code>. Las cuatro líneas se cruzan en la casilla del centro."}],"pdf":{"tipo":"ojo","txt":"El PDF dice que su ejemplo está «simplificado»: tiene 9 filas aunque pide n = 13. Con n = 13 salen 13 filas, como en esta consola."},"corto":"Estrella","codigo":"n = int(input(\"Tamaño impar de la estrella (n): \"))\nwhile n % 2 == 0:\n    n = int(input(\"Tiene que ser impar. Tamaño (n): \"))\n\ncentro = (n + 1) // 2                  # con n = 13, centro = 7\n\nfor i in range(1, n + 1):              # i = fila\n    for j in range(1, n + 1):          # j = columna\n        cruz = i == centro or j == centro\n        diagonal = j == i or j == n - i + 1\n        if cruz or diagonal:\n            print(\"*\", end=\"\")\n        else:\n            print(\" \", end=\"\")\n    print()\n","salidas":{"3":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["***","***","***"]},"5":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["* * *"," *** ","*****"," *** ","* * *"]},"7":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["*  *  *"," * * * ","  ***  ","*******","  ***  "," * * * ","*  *  *"]},"9":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["*   *   *"," *  *  * ","  * * *  ","   ***   ","*********","   ***   ","  * * *  "," *  *  * ","*   *   *"]},"11":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["*    *    *"," *   *   * ","  *  *  *  ","   * * *   ","    ***    ","***********","    ***    ","   * * *   ","  *  *  *  "," *   *   * ","*    *    *"]},"13":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["*     *     *"," *    *    * ","  *   *   *  ","   *  *  *   ","    * * *    ","     ***     ","*************","     ***     ","    * * *    ","   *  *  *   ","  *   *   *  "," *    *    * ","*     *     *"]},"15":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["*      *      *"," *     *     * ","  *    *    *  ","   *   *   *   ","    *  *  *    ","     * * *     ","      ***      ","***************","      ***      ","     * * *     ","    *  *  *    ","   *   *   *   ","  *    *    *  "," *     *     * ","*      *      *"]},"17":{"prompt":"Tamaño impar de la estrella (n): ","lineas":["*       *       *"," *      *      * ","  *     *     *  ","   *    *    *   ","    *   *   *    ","     *  *  *     ","      * * *      ","       ***       ","*****************","       ***       ","      * * *      ","     *  *  *     ","    *   *   *    ","   *    *    *   ","  *     *     *  "," *      *      * ","*       *       *"]}},"grids":{"3":["000/111/000","020/131/020","428/1f1/824"],"5":["00000/00000/11111/00000/00000","00200/00200/11311/00200/00200","40208/04280/11f11/08240/80204"],"7":["0000000/0000000/0000000/1111111/0000000/0000000/0000000","0002000/0002000/0002000/1113111/0002000/0002000/0002000","4002008/0402080/0042800/111f111/0082400/0802040/8002004"],"9":["000000000/000000000/000000000/000000000/111111111/000000000/000000000/000000000/000000000","000020000/000020000/000020000/000020000/111131111/000020000/000020000/000020000/000020000","400020008/040020080/004020800/000428000/1111f1111/000824000/008020400/080020040/800020004"],"11":["00000000000/00000000000/00000000000/00000000000/00000000000/11111111111/00000000000/00000000000/00000000000/00000000000/00000000000","00000200000/00000200000/00000200000/00000200000/00000200000/11111311111/00000200000/00000200000/00000200000/00000200000/00000200000","40000200008/04000200080/00400200800/00040208000/00004280000/11111f11111/00008240000/00080204000/00800200400/08000200040/80000200004"],"13":["0000000000000/0000000000000/0000000000000/0000000000000/0000000000000/0000000000000/1111111111111/0000000000000/0000000000000/0000000000000/0000000000000/0000000000000/0000000000000","0000002000000/0000002000000/0000002000000/0000002000000/0000002000000/0000002000000/1111113111111/0000002000000/0000002000000/0000002000000/0000002000000/0000002000000/0000002000000","4000002000008/0400002000080/0040002000800/0004002008000/0000402080000/0000042800000/111111f111111/0000082400000/0000802040000/0008002004000/0080002000400/0800002000040/8000002000004"],"15":["000000000000000/000000000000000/000000000000000/000000000000000/000000000000000/000000000000000/000000000000000/111111111111111/000000000000000/000000000000000/000000000000000/000000000000000/000000000000000/000000000000000/000000000000000","000000020000000/000000020000000/000000020000000/000000020000000/000000020000000/000000020000000/000000020000000/111111131111111/000000020000000/000000020000000/000000020000000/000000020000000/000000020000000/000000020000000/000000020000000","400000020000008/040000020000080/004000020000800/000400020008000/000040020080000/000004020800000/000000428000000/1111111f1111111/000000824000000/000008020400000/000080020040000/000800020004000/008000020000400/080000020000040/800000020000004"],"17":["00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000/11111111111111111/00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000/00000000000000000","00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000/11111111311111111/00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000/00000000200000000","40000000200000008/04000000200000080/00400000200000800/00040000200008000/00004000200080000/00000400200800000/00000040208000000/00000004280000000/11111111f11111111/00000008240000000/00000080204000000/00000800200400000/00008000200040000/00080000200004000/00800000200000400/08000000200000040/80000000200000004"]}}},"chips":[{"code":"i == 1","nombre":"fila de arriba","bits":"1111111000000000000000000000000000000000000000000"},{"code":"i == n","nombre":"fila de abajo","bits":"0000000000000000000000000000000000000000001111111"},{"code":"j == 1","nombre":"columna izquierda","bits":"1000000100000010000001000000100000010000001000000"},{"code":"j == n","nombre":"columna derecha","bits":"0000001000000100000010000001000000100000010000001"},{"code":"j == i","nombre":"diagonal \\","bits":"1000000010000000100000001000000010000000100000001"},{"code":"j == n - i + 1","nombre":"diagonal /","bits":"0000001000001000001000001000001000001000001000000"},{"code":"i == centro","nombre":"fila del centro","bits":"0000000000000000000001111111000000000000000000000"},{"code":"j == centro","nombre":"columna del centro","bits":"0001000000100000010000001000000100000010000001000"}]};
+const raiz = document.getElementById('a13');
+if (!raiz) return;
+const $ = (s, r = raiz) => r.querySelector(s);
+const $$ = (s, r = raiz) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const KW = new Set(['for', 'in', 'if', 'elif', 'else', 'or', 'and', 'not', 'while', 'True', 'False']);
+const BI = new Set(['print', 'range', 'int', 'input']);
+function resaltar(src) {
+  const re = /(#.*$)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|(\b\d+\b)|(\b[A-Za-z_]\w*\b)/gm;
+  let out = '', last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    if (m[1]) out += `<span class="tk-c">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tk-s">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tk-n">${m[3]}</span>`;
+    else if (KW.has(m[4])) out += `<span class="tk-k">${m[4]}</span>`;
+    else if (BI.has(m[4])) out += `<span class="tk-b">${m[4]}</span>`;
+    else out += esc(m[4]);
+    last = re.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+
+const entorno = (n, i, j) => ({ i, j, n, centro: Math.floor((n + 1) / 2), ancho: n - i + 1, a: Math.floor(n / 4) + 1, b: n - Math.floor(n / 4) });
+const sustituir = (code, env) => code.replace(/\b(i|j|n|centro|ancho|a|b)\b/g, v => env[v]);
+const valores = n => ({ n, centro: Math.floor((n + 1) / 2), a: Math.floor(n / 4) + 1, b: n - Math.floor(n / 4), n1: n - 1, alto: 2 * n - 1 });
+const rellenar = (txt, vals) => txt.replace(/\{(\w+)\}/g, (m, k) => (k in vals ? vals[k] : m));
+
+/* ---------- Cuadrícula ---------- */
+function pintarRejilla(cont, filas, { cols, etiquetas = true, corte = -1, mini = false, cell = 0 } = {}) {
+  let h = `<div class="fig${mini ? ' a13-mini' : ''}" style="--cols:${cols}${cell ? `;--cell:${cell}px` : ''}">`;
+  if (etiquetas) {
+    h += '<div class="fr"><span class="rl">i\\j</span>';
+    for (let j = 1; j <= cols; j++) h += `<span class="c cj">${j}</span>`;
+    h += '</div>';
+  }
+  filas.forEach((f, idx) => {
+    h += `<div class="fr${idx === corte ? ' corte' : ''}" data-fila="${idx}">`;
+    if (etiquetas) h += `<span class="rl">${f.i}</span>`;
+    for (const c of f.celdas) h += `<span class="c ${c.cls}" data-i="${f.i}" data-j="${c.j}" data-fila="${idx}"></span>`;
+    h += '</div>';
+  });
+  cont.innerHTML = h + '</div>';
+}
+function alPasar(cont, fn, salir) {
+  let ult = null;
+  cont.addEventListener('pointerover', e => {
+    const c = e.target.closest('.c[data-i]');
+    if (!c || c === ult) return;
+    if (ult) ult.classList.remove('hover');
+    ult = c; c.classList.add('hover');
+    fn(+c.dataset.i, +c.dataset.j, +c.dataset.fila);
+  });
+  cont.addEventListener('pointerleave', () => { if (ult) ult.classList.remove('hover'); ult = null; salir(); });
+}
+function filasCasillas(F, n, p) {
+  const paso = F.pasos[p];
+  return F.grids[n][p].split('/').map((r, idx) => ({
+    i: idx + 1,
+    celdas: [...r].map((ch, q) => {
+      const m = parseInt(ch, 16);
+      if (!m) return { j: q + 1, cls: 'e' };
+      const k = paso.piezas.findIndex((_, b) => m & (1 << b));
+      return { j: q + 1, cls: 's ' + F.piezas[paso.piezas[k]].k };
+    }),
+  }));
+}
+function filasRombo(n, cuantas) {
+  const lineas = D.figs.rombo.salidas[n].lineas;
+  const out = [];
+  for (let idx = 0; idx < cuantas; idx++) {
+    const arriba = idx < n, i = arriba ? idx + 1 : 2 * n - 1 - idx;
+    out.push({ i, arriba, celdas: [...lineas[idx]].map((ch, q) => ({ j: q + 1, cls: ch === '*' ? (arriba ? 's' : 's k2') : 'e' })) });
+  }
+  return out;
+}
+
+/* ---------- Estado de cada figura ---------- */
+const estado = {};
+for (const k of D.orden) estado[k] = { n: D.figs[k].n0, paso: 0 };
+const diapo = (key, tipo) => raiz.querySelector(`.a13-diapo[data-fig="${key}"][data-tipo="${tipo}"]`);
+const controlN = key => `<div class="control-n" data-fig="${key}"><span class="mono">n =</span><button type="button" class="btn a13-n" data-d="-1" aria-label="Bajar n">−</button><output class="a13-nval">${estado[key].n}</output><button type="button" class="btn a13-n" data-d="1" aria-label="Subir n">+</button></div>`;
+const cabecera = (F, parte, tit, sub) => `<div class="a13-cab"><div class="eyebrow">Ejercicio ${F.num} · ${F.nombre} · ${parte}</div><h3>${tit}</h3>${sub ? `<p class="a13-sub">${sub}</p>` : ''}</div>`;
+
+raiz.addEventListener('click', e => {
+  const b = e.target.closest('.a13-n');
+  if (!b) return;
+  const key = b.closest('.control-n').dataset.fig, F = D.figs[key], s = estado[key];
+  const k = F.ns.indexOf(s.n) + Number(b.dataset.d);
+  if (k < 0 || k >= F.ns.length) return;
+  s.n = F.ns[k];
+  actualizar(key);
+});
+
+/* ---------- Diapositiva 1 de cada figura: paso a paso ---------- */
+function montarPasos(key) {
+  const F = D.figs[key], sec = diapo(key, 'pasos'), rombo = F.forma === 'rombo';
+  sec.innerHTML = cabecera(F, 'Paso a paso', F.titAnalizar, F.intro) + `
+    <div class="a13-dos">
+      <div class="a13-col">
+        <div class="a13-pasos" role="group" aria-label="Pasos">${F.pasos.map((p, k) => `<button type="button" class="a13-paso${p.error ? ' error' : ''}" data-paso="${k}" aria-pressed="false"><b>${p.etq || k + 1}</b>${p.tit}</button>`).join('')}</div>
+        <p class="a13-txt"></p>
+        ${rombo
+          ? '<div class="tabla-wrap"><table class="a13-tabla"><thead><tr><th>Parte</th><th class="num">i</th><th class="num">espacios<span class="th-f sp">n - i</span></th><th class="num">asteriscos<span class="th-f a">2*i - 1</span></th></tr></thead><tbody></tbody></table></div>'
+          : '<div><div class="a13-rotulo">Piezas de la condición</div><ul class="a13-leyenda"></ul></div>'}
+        <div><div class="a13-rotulo">En el programa</div><pre class="code a13-cond"><code></code></pre></div>
+      </div>
+      <div class="a13-col">
+        <div class="a13-barra-fig">${controlN(key)}<span class="a13-vals"></span></div>
+        <div class="figwrap"></div>
+        <div class="a13-info"></div>
+      </div>
+    </div>`;
+  $$('.a13-paso', sec).forEach(b => b.addEventListener('click', () => { estado[key].paso = +b.dataset.paso; actualizarPasos(key); }));
+  const wrap = $('.figwrap', sec);
+  if (rombo) {
+    alPasar(wrap, (i, j, fila) => filaRombo(fila), () => filaRombo(-1));
+    const tbody = $('tbody', sec);
+    tbody.addEventListener('pointerover', e => { const tr = e.target.closest('tr[data-fila]'); if (tr) filaRombo(+tr.dataset.fila); });
+    tbody.addEventListener('pointerleave', () => filaRombo(-1));
+  } else {
+    alPasar(wrap, (i, j) => infoCasilla(key, i, j), () => infoDefecto(key));
+  }
+}
+function actualizarPasos(key) {
+  const F = D.figs[key], s = estado[key], sec = diapo(key, 'pasos'), paso = F.pasos[s.paso], vals = valores(s.n);
+  $$('.a13-paso', sec).forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.paso === s.paso)));
+  $('.a13-txt', sec).innerHTML = rellenar(paso.txt, vals);
+  $('.a13-cond code', sec).innerHTML = resaltar(paso.mostrar || `if ${paso.cond}:`);
+  $('.a13-vals', sec).textContent = F.vars.map(v => `${v} = ${vals[v]}`).join(' · ');
+  const wrap = $('.figwrap', sec);
+  if (F.forma === 'rombo') {
+    const filas = filasRombo(s.n, s.paso === 0 ? s.n : 2 * s.n - 1);
+    pintarRejilla(wrap, filas, { cols: 2 * s.n - 1, corte: s.paso === 1 ? s.n : -1 });
+    $('tbody', sec).innerHTML = filas.map((f, idx) => `<tr data-fila="${idx}"><td>${f.arriba ? 'arriba' : 'abajo'}</td><td class="num">${f.i}</td><td class="num">${s.n - f.i}</td><td class="num">${2 * f.i - 1}</td></tr>`).join('');
+    filaRombo(-1);
+  } else {
+    $('.a13-leyenda', sec).innerHTML = paso.piezas.map(pid => {
+      const P = F.piezas[pid];
+      return `<li><span class="punto ${P.k}"></span><code>${esc(P.code)}</code><span class="nom">${P.nombre}</span></li>`;
+    }).join('');
+    pintarRejilla(wrap, filasCasillas(F, s.n, s.paso), { cols: s.n });
+    infoDefecto(key);
+  }
+}
+function infoDefecto(key) {
+  $('.a13-info', diapo(key, 'pasos')).innerHTML = '<span>Pasa el ratón por una casilla, o tócala, para ver qué piezas de la condición se cumplen en ella.</span>';
+}
+function infoCasilla(key, i, j) {
+  const F = D.figs[key], s = estado[key], paso = F.pasos[s.paso];
+  const m = parseInt(F.grids[s.n][s.paso].split('/')[i - 1][j - 1], 16);
+  const env = entorno(s.n, i, j);
+  let h = `<span class="pos">Fila <b>i = ${i}</b> · columna <b>j = ${j}</b>${F.forma === 'triangulo' ? ` · <b>ancho = ${env.ancho}</b>` : ''} → ${m ? '<span class="lleva">lleva *</span>' : '<span class="vacio">espacio</span>'}</span>`;
+  h += paso.piezas.map((pid, q) => {
+    const P = F.piezas[pid], ok = m & (1 << q);
+    return `<span class="l"><span class="punto ${P.k}"></span><code>${esc(sustituir(P.code, env))}</code><span class="${ok ? 'si' : 'no'}">${ok ? 'Sí' : 'No'}</span></span>`;
+  }).join('');
+  $('.a13-info', diapo(key, 'pasos')).innerHTML = h;
+}
+function filaRombo(idx) {
+  const sec = diapo('rombo', 'pasos'), n = estado.rombo.n;
+  $$('.fr[data-fila]', sec).forEach(r => r.classList.toggle('a13-resalta', +r.dataset.fila === idx));
+  $$('tr[data-fila]', sec).forEach(r => r.classList.toggle('a13-resalta', +r.dataset.fila === idx));
+  const info = $('.a13-info', sec);
+  if (idx < 0) { info.innerHTML = '<span>Pasa el ratón por una fila del dibujo o de la tabla para ver su cuenta.</span>'; return; }
+  const arriba = idx < n, i = arriba ? idx + 1 : 2 * n - 1 - idx, e = n - i, a = 2 * i - 1;
+  info.innerHTML = `<span class="pos">Fila ${idx + 1} del dibujo, mitad de ${arriba ? 'arriba' : 'abajo'}, <b>i = ${i}</b></span>`
+    + `<span class="l"><code>n - i = ${n} - ${i} = ${e}</code><span>${e === 1 ? 'espacio' : 'espacios'}</span></span>`
+    + `<span class="l"><code>2*i - 1 = 2*${i} - 1 = ${a}</code><span>${a === 1 ? 'asterisco' : 'asteriscos'}</span></span>`;
+}
+
+/* ---------- Diapositiva 2 de cada figura: el programa ---------- */
+function copiarTexto(btn, texto, code) {
+  const fin = msg => { btn.textContent = msg; setTimeout(() => { btn.textContent = 'Copiar'; }, 1500); };
+  const seleccionar = () => { const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(r); fin('Seleccionado'); };
+  try { navigator.clipboard.writeText(texto).then(() => fin('Copiado'), seleccionar); } catch { seleccionar(); }
+}
+function montarPrograma(key) {
+  const F = D.figs[key], sec = diapo(key, 'programa');
+  sec.innerHTML = cabecera(F, 'El programa', F.titCodigo, F.notaCodigo) + `
+    <div class="a13-dos">
+      <div class="a13-col">
+        <div><div class="a13-archivo">actividad13/${F.archivo}</div><pre class="code a13-prog"><code></code><button type="button" class="copiar">Copiar</button></pre></div>
+        ${F.variante ? `<div class="a13-variante"><div class="a13-rotulo">${F.variante.tit}</div><p>${F.variante.txt}</p><pre class="code a13-cond"><code>${resaltar(F.variante.code)}</code></pre></div>` : ''}
+      </div>
+      <div class="a13-col">
+        <div class="a13-barra-fig"><span class="a13-rotulo">Consola</span>${controlN(key)}<label class="check"><input type="checkbox" id="a13-esp-${key}"> Ver los espacios</label></div>
+        <pre class="a13-consola"></pre>
+        <aside class="a13-nota ${F.pdf.tipo}"><h4>${F.pdf.tipo === 'ok' ? 'Coincide con el PDF' : 'Ojo con el ejemplo del PDF'}</h4><p>${F.pdf.txt}</p></aside>
+      </div>
+    </div>`;
+  const code = $('.a13-prog code', sec);
+  code.innerHTML = resaltar(F.codigo);
+  const btn = $('.copiar', sec);
+  btn.addEventListener('click', () => copiarTexto(btn, F.codigo, code));
+  $(`#a13-esp-${key}`, sec).addEventListener('change', () => actualizarPrograma(key));
+}
+function actualizarPrograma(key) {
+  const F = D.figs[key], s = estado[key], sec = diapo(key, 'programa'), sal = F.salidas[s.n];
+  const ver = $(`#a13-esp-${key}`, sec).checked;
+  const linea = l => (ver ? esc(l).replace(/ /g, '<span class="pto">·</span>') : esc(l));
+  $('.a13-consola', sec).innerHTML = `<span class="prompt">${esc(sal.prompt)}</span><span class="entrada">${s.n}</span>\n${sal.lineas.map(linea).join('\n')}`;
+}
+function actualizar(key) {
+  const F = D.figs[key], s = estado[key];
+  $$(`.control-n[data-fig="${key}"]`).forEach(c => {
+    $('.a13-nval', c).textContent = s.n;
+    const [menos, mas] = $$('.a13-n', c);
+    menos.disabled = s.n === F.ns[0];
+    mas.disabled = s.n === F.ns[F.ns.length - 1];
+  });
+  actualizarPasos(key);
+  actualizarPrograma(key);
+}
+
+/* ---------- Navegación ---------- */
+for (const key of D.orden) { montarPasos(key); montarPrograma(key); actualizar(key); }
+const diapos = $$('.a13-diapo');
+const ultima = diapos.length - 1;
+const grupos = [{ nombre: 'Inicio', ini: 0 }]
+  .concat(D.orden.map(k => ({ nombre: D.figs[k].corto, num: D.figs[k].num, ini: diapos.indexOf(diapo(k, 'pasos')) })))
+  .concat([{ nombre: 'Examen', ini: ultima }]);
+const grupoDe = k => grupos.reduce((g, x, q) => (x.ini <= k ? q : g), 0);
+const tabs = $('.a13-tabs');
+tabs.innerHTML = grupos.map((g, q) => `<button type="button" class="a13-tab" data-g="${q}">${g.num ? `<b>${g.num}</b>` : ''}${g.nombre}</button>`).join('');
+const cuenta = $('.a13-cuenta'), barra = $('.a13-progreso span'), ant = $('#a13-ant'), sig = $('#a13-sig');
+let actual = 0;
+
+function ir(k, { animar = true, desplazar = true } = {}) {
+  k = Math.max(0, Math.min(ultima, k));
+  diapos.forEach((d, q) => { d.hidden = q !== k; });
+  const d = diapos[k];
+  d.classList.remove('entra');
+  if (animar && !reducido) { void d.offsetWidth; d.classList.add('entra'); }
+  actual = k;
+  cuenta.textContent = `${k + 1} / ${diapos.length}`;
+  barra.style.width = `${((k + 1) / diapos.length) * 100}%`;
+  const g = grupoDe(k);
+  $$('.a13-tab', tabs).forEach(t => t.setAttribute('aria-current', String(+t.dataset.g === g)));
+  ant.disabled = k === 0;
+  sig.disabled = k === ultima;
+  if (!desplazar) return;
+  if (document.fullscreenElement === raiz) raiz.scrollTop = 0;
+  else if (raiz.getBoundingClientRect().top < 0) raiz.scrollIntoView({ block: 'start', behavior: reducido ? 'auto' : 'smooth' });
+}
+tabs.addEventListener('click', e => { const t = e.target.closest('.a13-tab'); if (t) ir(grupos[+t.dataset.g].ini); });
+ant.addEventListener('click', () => ir(actual - 1));
+sig.addEventListener('click', () => ir(actual + 1));
+raiz.addEventListener('keydown', e => {
+  if (e.altKey || e.ctrlKey || e.metaKey || e.target.closest('input, select, textarea')) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); ir(actual + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); ir(actual - 1); }
+});
+
+/* Miniaturas de la portada */
+const minis = $('.a13-minis');
+minis.innerHTML = D.orden.map(k => `<button type="button" class="a13-mini-btn" data-ir="${k}"><span class="a13-mini-fig"></span><span class="a13-mini-nom"><b>${D.figs[k].num}</b>${D.figs[k].nombre}</span></button>`).join('')
+  + '<button type="button" class="a13-mini-btn" data-ir="examen"><span class="a13-mini-q" aria-hidden="true">?</span><span class="a13-mini-nom">En el examen</span></button>';
+D.orden.forEach((key, q) => {
+  const F = D.figs[key], n = F.n0;
+  let filas, cols;
+  if (F.forma === 'rombo') { filas = filasRombo(n, 2 * n - 1); cols = 2 * n - 1; }
+  else { filas = filasCasillas(F, n, F.pasos.findIndex(p => p.final)); cols = n; }
+  pintarRejilla($('.a13-mini-fig', minis.children[q]), filas, { cols, etiquetas: false, mini: true, cell: Math.max(4, Math.min(9, Math.floor(96 / cols))) });
+});
+minis.addEventListener('click', e => {
+  const b = e.target.closest('[data-ir]');
+  if (!b) return;
+  ir(b.dataset.ir === 'examen' ? ultima : diapos.indexOf(diapo(b.dataset.ir, 'pasos')));
+});
+
+/* Pantalla completa (opcional: no todos los visores la permiten) */
+const pc = $('.a13-pc');
+if (!document.fullscreenEnabled || !raiz.requestFullscreen) pc.hidden = true;
+pc.addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await raiz.requestFullscreen();
+  } catch {
+    pc.textContent = 'No disponible aquí';
+    setTimeout(() => { pc.textContent = 'Pantalla completa'; }, 1800);
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  const dentro = document.fullscreenElement === raiz;
+  pc.textContent = dentro ? 'Salir de pantalla completa' : 'Pantalla completa';
+  if (dentro) raiz.focus();
+});
+
+ir(0, { animar: false, desplazar: false });
+})();
+</script>
+</body>
+</html>
